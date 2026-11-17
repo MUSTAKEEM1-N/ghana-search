@@ -102,92 +102,70 @@ def _deduplicate(items):
     return unique
 
 
+
 def search_web(query, search_type, region, safe):
-    """Return a larger, de-duplicated result set using DDGS metasearch."""
+    """Fast search using one DDGS request per search."""
     region_code = REGIONS.get(region, "wt-wt")
     safe_value = safe if safe in ("strict", "moderate", "off") else "moderate"
     results = []
     error = ""
 
     try:
-        with DDGS(timeout=12) as ddgs:
+        with DDGS(timeout=7) as ddgs:
+
             if search_type == "images":
                 raw = ddgs.images(
-                    query, region=region_code, safesearch=safe_value,
-                    max_results=RESULTS_PER_SEARCH, page=1
+                    query,
+                    region=region_code,
+                    safesearch=safe_value,
+                    max_results=RESULTS_PER_SEARCH,
+                    page=1
                 )
-                results = [
-                    item for item in
-                    (_normalize_result(x, "images") for x in raw)
-                    if item
-                ]
+                category = "images"
 
             elif search_type == "news":
                 raw = ddgs.news(
-                    query, region=region_code, safesearch=safe_value,
-                    max_results=RESULTS_PER_SEARCH, page=1
+                    query,
+                    region=region_code,
+                    safesearch=safe_value,
+                    max_results=RESULTS_PER_SEARCH,
+                    page=1
                 )
-                results = [
-                    item for item in
-                    (_normalize_result(x, "news") for x in raw)
-                    if item
-                ]
+                category = "news"
 
             elif search_type == "videos":
                 raw = ddgs.videos(
-                    query, region=region_code, safesearch=safe_value,
-                    max_results=RESULTS_PER_SEARCH, page=1
+                    query,
+                    region=region_code,
+                    safesearch=safe_value,
+                    max_results=RESULTS_PER_SEARCH,
+                    page=1
                 )
-                results = [
-                    item for item in
-                    (_normalize_result(x, "videos") for x in raw)
-                    if item
-                ]
+                category = "videos"
 
             else:
                 search_query = query
+
                 if search_type == "jobs":
                     search_query = f"{query} jobs vacancies careers"
 
-                # First ask DDGS to search several indexes together.
-                try:
-                    raw = ddgs.text(
-                        search_query,
-                        region=region_code,
-                        safesearch=safe_value,
-                        max_results=RESULTS_PER_SEARCH,
-                        page=1,
-                        backend=TEXT_BACKENDS
-                    )
-                    results.extend(
-                        item for item in
-                        (_normalize_result(x, search_type) for x in raw)
-                        if item
-                    )
-                except Exception as backend_error:
-                    print("GHANA SEARCH MULTI-INDEX ERROR:", repr(backend_error))
+                raw = ddgs.text(
+                    search_query,
+                    region=region_code,
+                    safesearch=safe_value,
+                    max_results=RESULTS_PER_SEARCH,
+                    page=1,
+                    backend="auto"
+                )
+                category = search_type
 
-                # If the combined request returns very little, make one
-                # automatic-backend fallback request and merge unique links.
-                if len(results) < 12:
-                    try:
-                        raw = ddgs.text(
-                            search_query,
-                            region=region_code,
-                            safesearch=safe_value,
-                            max_results=RESULTS_PER_SEARCH,
-                            page=1,
-                            backend="auto"
-                        )
-                        results.extend(
-                            item for item in
-                            (_normalize_result(x, search_type) for x in raw)
-                            if item
-                        )
-                    except Exception as fallback_error:
-                        print("GHANA SEARCH FALLBACK ERROR:", repr(fallback_error))
+            results = [
+                item for item in
+                (_normalize_result(x, category) for x in raw)
+                if item
+            ]
 
-                results = _deduplicate(results)[:RESULTS_PER_SEARCH]
+            results = _deduplicate(results)[:RESULTS_PER_SEARCH]
 
     except Exception as exc:
         print("GHANA SEARCH ERROR:", repr(exc))
@@ -198,7 +176,9 @@ def search_web(query, search_type, region, safe):
 
     if not results and not error:
         error = "No results were returned for this search. Try different words."
+
     return results, error
+
 
 
 @app.route("/", methods=["GET", "POST"])
