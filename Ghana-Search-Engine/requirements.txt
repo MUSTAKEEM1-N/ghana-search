@@ -1,0 +1,4 @@
+Flask
+ddgs
+google-genai
+gunicorn

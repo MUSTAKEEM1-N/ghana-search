@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#c6a24a">
+<meta name="description" content="GHANA SEARCH — a clean, worldwide search experience.">
+<title>{% if query %}{{ query }} — GHANA SEARCH{% else %}GHANA SEARCH — Search the world{% endif %}</title>
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icon-192.png') }}">
+<style>
+:root{--bg:#fff;--surface:#fff;--surface2:#f7f7f7;--text:#202124;--muted:#687078;--line:#e5e7eb;--gold:#b18b32;--gold2:#d7bd75;--shadow:0 8px 28px rgba(0,0,0,.08)}
+:root.dark{--bg:#111214;--surface:#191b1f;--surface2:#22252a;--text:#f2f2f2;--muted:#a8adb5;--line:#34383e;--gold:#d4b45d;--gold2:#9d8036;--shadow:0 8px 28px rgba(0,0,0,.28)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Arial,Helvetica,sans-serif;transition:background .2s,color .2s}
+a{color:inherit}.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:750;letter-spacing:1.5px}.brand-mark{width:32px;height:32px;border:2px solid var(--gold);border-radius:9px;display:grid;place-items:center;color:var(--gold);font-weight:800;font-size:13px}
+.top-actions{display:flex;align-items:center;gap:8px}.icon-btn{border:1px solid transparent;background:transparent;color:var(--text);width:42px;height:42px;border-radius:50%;font-size:22px;cursor:pointer}.icon-btn:hover{background:var(--surface2);border-color:var(--line)}
+.menu-wrap{position:relative}.menu{display:none;position:absolute;right:0;top:48px;width:235px;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);z-index:20}.menu.open{display:block}.menu button,.menu a{display:block;width:100%;text-align:left;padding:11px 12px;border:0;border-radius:9px;background:transparent;color:var(--text);text-decoration:none;cursor:pointer;font-size:14px}.menu button:hover,.menu a:hover{background:var(--surface2)}
+main{width:min(100% - 36px,1000px);margin:0 auto}.home-hero{min-height:calc(100vh - 115px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:55px 0 95px}.logo-word{font-size:clamp(38px,7vw,64px);font-weight:700;letter-spacing:-2px;margin:0 0 6px}.logo-word span{color:var(--gold)}.tagline{color:var(--muted);margin:0 0 32px;letter-spacing:.4px}
+.search-form{width:min(100%,680px);position:relative}.search-shell{height:56px;border:1px solid var(--line);border-radius:30px;display:flex;align-items:center;padding:0 18px;gap:12px;background:var(--surface);box-shadow:0 2px 10px rgba(0,0,0,.04)}.search-shell:focus-within{box-shadow:var(--shadow);border-color:var(--gold2)}.search-symbol{color:var(--muted);font-size:19px}.search-shell input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font-size:16px}.clear-btn{border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer}.search-actions{display:flex;gap:10px;justify-content:center;margin-top:24px}.primary-btn,.secondary-btn{padding:11px 19px;border-radius:8px;border:1px solid var(--line);background:var(--surface2);color:var(--text);cursor:pointer;font-size:14px}.primary-btn{background:var(--gold);border-color:var(--gold);color:#171717;font-weight:700}.primary-btn:hover{filter:brightness(1.06)}.suggestions{position:absolute;top:61px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);z-index:10;overflow:hidden;display:none}.suggestions.show{display:block}.suggestions button{display:block;width:100%;text-align:left;padding:10px 18px;border:0;background:transparent;color:var(--text);cursor:pointer}.suggestions button:hover{background:var(--surface2)}
+.results-top{padding:34px 0 0}.compact-search{width:min(100%,680px)}.compact-search .search-shell{height:48px}.tabs{display:flex;gap:24px;overflow-x:auto;border-bottom:1px solid var(--line);margin-top:26px;white-space:nowrap}.tab{padding:12px 3px 11px;text-decoration:none;color:var(--muted);border-bottom:3px solid transparent;font-size:14px}.tab.active{color:var(--gold);border-color:var(--gold);font-weight:700}
+.result-count{color:var(--muted);font-size:13px;margin:18px 0}.result{padding:14px 0 18px;max-width:760px}.result-url{font-size:13px;color:var(--muted);overflow-wrap:anywhere}.result h2{font-size:20px;font-weight:500;line-height:1.3;margin:5px 0;color:#1a5dab}.dark .result h2{color:#8ab4f8}.result h2 a{text-decoration:none}.result h2 a:hover{text-decoration:underline}.result p{margin:6px 0;color:var(--muted);font-size:14px}.result-meta{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.5px}
+.grid-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px;margin-top:18px}.image-card,.video-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);text-decoration:none}.image-card img,.video-card img{width:100%;height:150px;object-fit:cover;background:var(--surface2);display:block}.image-card div,.video-card div{padding:10px;font-size:13px}.empty,.error{padding:18px;border:1px solid var(--line);border-radius:12px;color:var(--muted);max-width:760px}.error{border-color:#d69b70;color:#b65a27}.ai-card{max-width:760px;border:1px solid var(--line);border-radius:14px;padding:18px;margin:18px 0 24px;background:var(--surface)}.ai-heading{font-weight:700;color:var(--gold);margin-bottom:8px}.ai-answer{white-space:pre-wrap;color:var(--text)}.ai-sources{margin-top:12px;font-size:13px}.ai-sources a{color:var(--gold);display:block;margin:5px 0}.history{margin:40px 0 0;color:var(--muted);font-size:13px}.history-items{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.history-items form{margin:0}.history-chip{border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--text);padding:7px 12px;cursor:pointer}.history-clear{border:0;background:transparent;color:var(--gold);cursor:pointer;margin-left:8px}
+.settings-panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;align-items:center;justify-content:center;padding:18px}.settings-panel.open{display:flex}.settings-card{width:min(100%,420px);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}.settings-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.settings-head h2{font-size:20px;margin:0}.close-settings{border:0;background:transparent;color:var(--text);font-size:24px;cursor:pointer}.setting-row{display:flex;flex-direction:column;gap:7px;margin:15px 0}.setting-row label{font-size:13px;color:var(--muted)}.setting-row select{padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);color:var(--text)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 12px;border-top:1px solid var(--line);margin-top:40px}
+@media(max-width:600px){.topbar{padding:0 14px;height:58px}.brand{font-size:13px}.home-hero{min-height:calc(100vh - 100px);padding:35px 0 65px}.tagline{font-size:13px}.search-shell{height:52px;padding:0 14px}.search-actions{margin-top:18px}.results-top{padding-top:22px}.tabs{gap:19px}.result h2{font-size:18px}.grid-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.image-card img,.video-card img{height:115px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+<a class="brand" href="/"><span class="brand-mark">GS</span><span>GHANA SEARCH</span></a>
+<div class="top-actions">
+<button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">◐</button>
+<div class="menu-wrap"><button class="icon-btn" id="menuToggle" aria-label="Open menu" title="More options">⋮</button>
+<nav class="menu" id="mainMenu">
+<button type="button" id="openSettings">Search settings</button>
+<button type="button" id="menuTheme">Appearance: light/dark</button>
+<a href="#history">Search history</a>
+<a href="/health" target="_blank" rel="noopener">Service status</a>
+</nav></div></div>
+</header>
+<main>
+{% if not query %}
+<section class="home-hero">
+<h1 class="logo-word">GHANA <span>SEARCH</span></h1>
+<p class="tagline">Search the world. Start with Ghana.</p>
+<form class="search-form" method="post" action="/" autocomplete="off">
+<input type="hidden" name="search_type" value="all">
+<input type="hidden" name="region" class="region-value" value="{{ region }}">
+<input type="hidden" name="safe" class="safe-value" value="{{ safe }}">
+<div class="search-shell"><span class="search-symbol">⌕</span><input id="searchInput" name="search" type="search" placeholder="Search anything..." required autofocus><button class="clear-btn" type="button" id="clearInput" aria-label="Clear search">×</button></div>
+<div class="suggestions" id="suggestions"></div>
+<div class="search-actions"><button class="primary-btn" type="submit">Google Search</button><button class="secondary-btn" type="button" id="luckyBtn">I'm Feeling Curious</button></div>
+</form>
+</section>
+{% else %}
+<section class="results-top">
+<form class="search-form compact-search" method="post" action="/" autocomplete="off">
+<input type="hidden" name="search_type" value="{{ search_type }}">
+<input type="hidden" name="region" class="region-value" value="{{ region }}">
+<input type="hidden" name="safe" class="safe-value" value="{{ safe }}">
+<div class="search-shell"><span class="search-symbol">⌕</span><input id="searchInput" name="search" type="search" value="{{ query }}" required><button class="clear-btn" type="button" id="clearInput" aria-label="Clear search">×</button></div>
+<div class="suggestions" id="suggestions"></div>
+</form>
+<nav class="tabs" aria-label="Search categories">
+{% for tab,label in [('all','All'),('images','Images'),('videos','Videos'),('news','News'),('jobs','Jobs')] %}
+<form method="post" action="/" style="margin:0">
+<input type="hidden" name="search" value="{{ query }}"><input type="hidden" name="search_type" value="{{ tab }}"><input type="hidden" name="region" class="region-value" value="{{ region }}"><input type="hidden" name="safe" class="safe-value" value="{{ safe }}">
+<button class="tab {% if search_type == tab %}active{% endif %}" type="submit" style="background:none;border-top:0;border-left:0;border-right:0;cursor:pointer">{{ label }}</button>
+</form>
+{% endfor %}
+</nav>
+</section>
+<p class="result-count">{% if results %}About {{ results|length }} results{% else %}Search results{% endif %} for <strong>{{ query }}</strong></p>
+{% if search_type == 'all' and query %}
+<section class="ai-card" id="aiBox"><div class="ai-heading">AI overview</div><div class="ai-answer" id="aiAnswer">Preparing an answer...</div><div class="ai-sources" id="aiSources"></div></section>
+{% endif %}
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+{% if search_type == 'images' or search_type == 'videos' %}
+<div class="grid-results">
+{% for item in results %}
+<a class="{% if search_type == 'images' %}image-card{% else %}video-card{% endif %}" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+{% if item.image %}<img src="{{ item.image }}" alt="" loading="lazy">{% else %}<div style="height:150px;background:var(--surface2)"></div>{% endif %}
+<div>{{ item.title }}</div></a>
+{% endfor %}
+</div>
+{% else %}
+{% for item in results %}
+<article class="result"><div class="result-url">{{ item.url }}</div><div class="result-meta">{{ item.category }}{% if item.source %} · {{ item.source }}{% endif %}{% if item.date %} · {{ item.date }}{% endif %}</div><h2><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a></h2><p>{{ item.description }}</p></article>
+{% endfor %}
+{% endif %}
+{% if not results and not error %}<div class="empty">No results found. Try another search or change your region in settings.</div>{% endif %}
+{% endif %}
+<section class="history" id="history">
+{% if history %}
+<strong>Recent searches</strong>
+<div class="history-items">
+{% for item in history %}
+<form method="post" action="/"><input type="hidden" name="search" value="{{ item }}"><input type="hidden" name="search_type" value="all"><input type="hidden" name="region" class="region-value" value="{{ region }}"><input type="hidden" name="safe" class="safe-value" value="{{ safe }}"><button class="history-chip" type="submit">{{ item }}</button></form>
+{% endfor %}
+<form method="post" action="/clear-history"><button class="history-clear" type="submit">Clear history</button></form>
+</div>
+{% endif %}
+</section>
+</main>
+<footer>GHANA SEARCH · Independent search experience</footer>
+<div class="settings-panel" id="settingsPanel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+<div class="settings-card"><div class="settings-head"><h2 id="settingsTitle">Search settings</h2><button class="close-settings" id="closeSettings" aria-label="Close settings">×</button></div>
+<div class="setting-row"><label for="regionSelect">Search region</label><select id="regionSelect"><option value="worldwide">Worldwide</option><option value="ghana">Ghana</option><option value="usa">United States</option><option value="uk">United Kingdom</option><option value="canada">Canada</option><option value="australia">Australia</option><option value="india">India</option><option value="germany">Germany</option><option value="france">France</option><option value="nigeria">Nigeria</option><option value="south_africa">South Africa</option></select></div>
+<div class="setting-row"><label for="safeSelect">SafeSearch</label><select id="safeSelect"><option value="on">Strict</option><option value="moderate">Moderate</option><option value="off">Off</option></select></div>
+<div class="setting-row"><label for="appearanceSelect">Appearance</label><select id="appearanceSelect"><option value="light">Light</option><option value="dark">Dark</option><option value="system">Use device setting</option></select></div>
+<button class="primary-btn" id="saveSettings" type="button" style="width:100%;margin-top:8px">Save settings</button>
+</div></div>
+<script>
+const $=id=>document.getElementById(id);
+const menu=$("mainMenu"), panel=$("settingsPanel");
+function setTheme(mode){let dark=mode==="dark"||(mode==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",dark);localStorage.setItem("gs-theme",mode);$("appearanceSelect").value=mode;}
+function toggleTheme(){setTheme(document.documentElement.classList.contains("dark")?"light":"dark");}
+$("themeToggle").addEventListener("click",toggleTheme);
+$("menuTheme").addEventListener("click",()=>{toggleTheme();menu.classList.remove("open")});
+$("menuToggle").addEventListener("click",e=>{e.stopPropagation();menu.classList.toggle("open")});
+document.addEventListener("click",e=>{if(!e.target.closest(".menu-wrap"))menu.classList.remove("open")});
+function openSettings(){menu.classList.remove("open");panel.classList.add("open")}
+$("openSettings").addEventListener("click",openSettings);
+$("closeSettings").addEventListener("click",()=>panel.classList.remove("open"));
+panel.addEventListener("click",e=>{if(e.target===panel)panel.classList.remove("open")});
+$("regionSelect").value=localStorage.getItem("gs-region")||"{{ region }}";
+$("safeSelect").value=localStorage.getItem("gs-safe")||"{{ safe }}";
+setTheme(localStorage.getItem("gs-theme")||"light");
+$("saveSettings").addEventListener("click",()=>{localStorage.setItem("gs-region",$("regionSelect").value);localStorage.setItem("gs-safe",$("safeSelect").value);setTheme($("appearanceSelect").value);document.querySelectorAll(".region-value").forEach(x=>x.value=$("regionSelect").value);document.querySelectorAll(".safe-value").forEach(x=>x.value=$("safeSelect").value);panel.classList.remove("open");});
+const input=$("searchInput"), suggestionBox=$("suggestions");
+if(input){
+$("clearInput").addEventListener("click",()=>{input.value="";input.focus()});
+let suggestTimer;
+input.addEventListener("input",()=>{clearTimeout(suggestTimer);const q=input.value.trim();if(q.length<2){suggestionBox.classList.remove("show");return}suggestTimer=setTimeout(async()=>{try{const r=await fetch("/suggestions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q})});const d=await r.json();suggestionBox.innerHTML="";(d.suggestions||[]).forEach(s=>{const b=document.createElement("button");b.type="button";b.textContent=s;b.addEventListener("click",()=>{input.value=s;input.form.submit()});suggestionBox.appendChild(b)});suggestionBox.classList.toggle("show",suggestionBox.children.length>0)}catch(e){suggestionBox.classList.remove("show")}},250)});
+document.addEventListener("click",e=>{if(!e.target.closest(".search-form"))suggestionBox.classList.remove("show")});
+}
+const lucky=$("luckyBtn");if(lucky)lucky.addEventListener("click",()=>{const choices=["latest technology news","history of Ghana","world discoveries today","how artificial intelligence works","African business opportunities"];input.value=choices[Math.floor(Math.random()*choices.length)];input.form.submit()});
+async function loadAIAnswer(){
+const answer=$("aiAnswer");if(!answer)return;
+try{const response=await fetch("/ai-answer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:{{ query|tojson }}})});const data=await response.json();if(!response.ok)throw new Error(data.error||"AI answer unavailable.");answer.textContent=data.answer||"No answer returned.";const box=$("aiSources");(data.sources||[]).forEach(s=>{const a=document.createElement("a");a.href=s.url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=s.title||s.url;box.appendChild(a)});if(data.search_warning){const p=document.createElement("p");p.textContent=data.search_warning;box.appendChild(p)}}catch(e){answer.textContent=e.message||"AI overview is temporarily unavailable."}
+}
+document.addEventListener("DOMContentLoaded",loadAIAnswer);
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("/service-worker.js").catch(()=>{}))}
+</script>
+</body></html>
