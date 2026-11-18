@@ -133,7 +133,96 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 12px;bor
 </style>
 </head>
 <body>
+<div class="browser-tabs" id="browserTabs">
+    <div class="browser-tab-list" id="browserTabList"></div>
+    <button class="new-browser-tab" id="newBrowserTab" type="button" title="New tab">+</button>
+</div>
 
+<style>
+.browser-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px 0;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+}
+
+.browser-tab-list {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    flex: 1;
+}
+
+.browser-tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 120px;
+    max-width: 220px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.browser-tab.active {
+    background: var(--surface);
+    color: var(--gold);
+    font-weight: bold;
+}
+
+.browser-tab-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.close-browser-tab {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.new-browser-tab {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--gold);
+    font-size: 22px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.new-browser-tab:hover {
+    background: var(--gold);
+    color: #171717;
+}
+
+@media(max-width:600px) {
+    .browser-tabs {
+        padding: 7px 8px 0;
+    }
+
+    .browser-tab {
+        min-width: 105px;
+        max-width: 155px;
+        padding: 8px;
+    }
+}
+</style>
 <header class="topbar">
 <a class="brand" href="/"><span class="brand-mark">GS</span><span>GHANA SEARCH</span></a>
 <div class="top-actions">
@@ -519,6 +608,167 @@ if("serviceWorker" in navigator){
         navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
     });
 }
+
+// GHANA SEARCH - Browser-style tab system
+(function () {
+    const STORAGE_KEY = "ghana-search-browser-tabs-v1";
+    const list = document.getElementById("browserTabList");
+    const newButton = document.getElementById("newBrowserTab");
+
+    if (!list || !newButton) return;
+
+    function loadTabs() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (Array.isArray(saved) && saved.length) return saved;
+        } catch (e) {}
+
+        return [{ id: Date.now(), title: "New Tab", query: "", type: "all" }];
+    }
+
+    let tabs = loadTabs();
+    let activeId = Number(localStorage.getItem("ghana-search-active-tab")) || tabs[0].id;
+
+    if (!tabs.some(tab => tab.id === activeId)) activeId = tabs[0].id;
+
+    function saveTabs() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
+        localStorage.setItem("ghana-search-active-tab", String(activeId));
+    }
+
+    function renderTabs() {
+        list.innerHTML = "";
+
+        tabs.forEach(tab => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "browser-tab" + (tab.id === activeId ? " active" : "");
+
+            const title = document.createElement("span");
+            title.className = "browser-tab-title";
+            title.textContent = tab.title || "New Tab";
+
+            const close = document.createElement("span");
+            close.className = "close-browser-tab";
+            close.textContent = "×";
+            close.title = "Close tab";
+
+            close.addEventListener("click", function (event) {
+                event.stopPropagation();
+                closeTab(tab.id);
+            });
+
+            button.appendChild(title);
+            button.appendChild(close);
+
+            button.addEventListener("click", function () {
+                switchTab(tab.id);
+            });
+
+            list.appendChild(button);
+        });
+    }
+
+    function submitTab(tab) {
+        if (!tab.query) {
+            window.location.href = "/";
+            return;
+        }
+
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/";
+
+        const fields = {
+            search: tab.query,
+            search_type: tab.type || "all",
+            region: tab.region || localStorage.getItem("gs-region") || "worldwide",
+            safe: tab.safe || localStorage.getItem("gs-safe") || "moderate"
+        };
+
+        Object.entries(fields).forEach(([name, value]) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function switchTab(id) {
+        if (id === activeId) return;
+
+        activeId = id;
+        saveTabs();
+        const tab = tabs.find(item => item.id === id);
+        renderTabs();
+        submitTab(tab);
+    }
+
+    function closeTab(id) {
+        tabs = tabs.filter(tab => tab.id !== id);
+
+        if (!tabs.length) {
+            tabs.push({ id: Date.now(), title: "New Tab", query: "", type: "all" });
+        }
+
+        if (activeId === id) {
+            activeId = tabs[tabs.length - 1].id;
+            saveTabs();
+            renderTabs();
+            submitTab(tabs.find(tab => tab.id === activeId));
+        } else {
+            saveTabs();
+            renderTabs();
+        }
+    }
+
+    newButton.addEventListener("click", function () {
+        const tab = {
+            id: Date.now(),
+            title: "New Tab",
+            query: "",
+            type: "all"
+        };
+
+        tabs.push(tab);
+        activeId = tab.id;
+        saveTabs();
+        renderTabs();
+        window.location.href = "/";
+    });
+
+    // Remember searches in the active tab.
+    document.querySelectorAll('form[method="post"][action="/"]').forEach(form => {
+        form.addEventListener("submit", function () {
+            const data = new FormData(form);
+            const query = (data.get("search") || "").toString().trim();
+
+            if (!query) return;
+
+            let tab = tabs.find(item => item.id === activeId);
+
+            if (!tab) {
+                tab = { id: activeId, title: "New Tab" };
+                tabs.push(tab);
+            }
+
+            tab.query = query;
+            tab.title = query.length > 22 ? query.slice(0, 22) + "…" : query;
+            tab.type = data.get("search_type") || "all";
+            tab.region = data.get("region") || "worldwide";
+            tab.safe = data.get("safe") || "moderate";
+
+            saveTabs();
+        });
+    });
+
+    renderTabs();
+})();
+
 </script>
 </body>
 </html>
