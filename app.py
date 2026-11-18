@@ -364,6 +364,7 @@ def service_worker():
     response.headers["Cache-Control"] = "no-cache"
     return response
 
+
 @app.route("/about")
 def about():
     return render_template("about.html")
@@ -377,9 +378,12 @@ def privacy():
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
-    @app.route("/terms")
+
+
+@app.route("/terms")
 def terms():
     return render_template("terms.html")
+
 
 if __name__ == "__main__":
     print("-----------------------------------")
@@ -389,4 +393,3 @@ if __name__ == "__main__":
     print("Results per search:", RESULTS_PER_SEARCH)
     print("-----------------------------------")
     app.run(host="127.0.0.1", port=5000, debug=True)
- 
