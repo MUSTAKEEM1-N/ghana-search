@@ -1,4 +1,4 @@
-Flask
-ddgs
-google-genai
-gunicorn
+Flask>=3.0,<4
+ddgs>=9.0,<10
+google-genai>=1.0,<2
+gunicorn>=22,<24
