@@ -402,11 +402,17 @@ def support_page():
                            adsense_slot=os.environ.get("ADSENSE_SLOT_ID", ""))
 
 
+
 def paystack_request(path, payload=None, method="GET"):
     secret = os.environ.get("PAYSTACK_SECRET_KEY")
+
     if not secret:
-        raise RuntimeError("Paystack is not configured. Add PAYSTACK_SECRET_KEY in Render environment settings.")
+        raise RuntimeError(
+            "Paystack is not configured. Add PAYSTACK_SECRET_KEY in Render environment settings."
+        )
+
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
+
     req = Request(
         PAYSTACK_API + path,
         data=body,
@@ -417,8 +423,19 @@ def paystack_request(path, payload=None, method="GET"):
             "Accept": "application/json",
         },
     )
-    with urlopen(req, timeout=20) as response:
-        return json.loads(response.read().decode("utf-8"))
+
+    try:
+        with urlopen(req, timeout=20) as response:
+            return json.loads(response.read().decode("utf-8"))
+
+    except HTTPError as error:
+        details = error.read().decode("utf-8", errors="replace")
+        print("PAYSTACK HTTP ERROR:", error.code, details)
+        raise RuntimeError(f"Paystack error ({error.code}): {details}")
+
+    except URLError as error:
+        print("PAYSTACK CONNECTION ERROR:", str(error))
+        raise RuntimeError("Could not connect to Paystack. Please try again.")
 
 
 @app.route("/support/initialize", methods=["POST"])
