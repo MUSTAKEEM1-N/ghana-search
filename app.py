@@ -124,11 +124,11 @@ def search_web(query, search_type="all", region="worldwide", safe="moderate", pa
     safe_value = {"strict": "on", "moderate": "moderate", "off": "off"}.get(safe, "moderate")
     page = max(1, min(int(page), MAX_PAGE))
     try:
-        with DDGS(timeout=15) as ddgs:
+        with DDGS(timeout=4) as ddgs:
             common = {
                 "region": region_code,
                 "safesearch": safe_value,
-                "max_results": RESULTS_PER_PAGE,
+                "max_results": 12,
                 "page": page,
             }
             if search_type == "images":
@@ -139,20 +139,16 @@ def search_web(query, search_type="all", region="worldwide", safe="moderate", pa
                 raw = ddgs.videos(query, **common)
             else:
                 search_query = f"{query} jobs vacancies careers" if search_type == "jobs" else query
-                try:
-                    raw = ddgs.text(search_query, backend="all", **common)
-                except Exception as first_error:
-                    logger.warning("All-backend search failed; trying auto: %r", first_error)
-                    raw = ddgs.text(search_query, backend="auto", **common)
+                raw = ddgs.text(search_query, backend="auto", **common)
 
         results = [
             normalized for normalized in
             (normalize_result(item, search_type) for item in raw)
             if normalized
         ]
-        return deduplicate(results)[:RESULTS_PER_PAGE], ""
+        return deduplicate(results)[:12], ""
     except Exception as exc:
-        logger.exception("Search provider error")
+        logger.warning("Search provider request failed: %r", exc)
         return [], "The search provider could not return results right now. Please try again shortly."
 
 
@@ -276,7 +272,7 @@ def suggestions():
     if len(query) < 2:
         return jsonify(suggestions=[])
     try:
-        with DDGS(timeout=8) as ddgs:
+        with DDGS(timeout=4) as ddgs:
             items = list(ddgs.suggestions(query, region=REGIONS.get(session.get("region", "worldwide"), "wt-wt")))
         phrases = [clean_text(x.get("phrase"), 120) for x in items if x.get("phrase")]
         return jsonify(suggestions=phrases[:8])
@@ -292,7 +288,7 @@ def related_searches():
     if len(query) < 2:
         return jsonify(suggestions=[])
     try:
-        with DDGS(timeout=8) as ddgs:
+        with DDGS(timeout=4) as ddgs:
             items = list(ddgs.suggestions(query, region="wt-wt"))
         phrases = [clean_text(x.get("phrase"), 100) for x in items if x.get("phrase")]
         return jsonify(suggestions=phrases[:6])
@@ -374,21 +370,37 @@ def api_discover():
     
     feed = []
     try:
-        with DDGS(timeout=15) as ddgs:
-            for label, term in topics:
-                try:
-                    raw = ddgs.news(term, region=region_code, safesearch="moderate", max_results=5, page=1)
-                    for item in raw:
-                        row = normalize_result(item, "news")
-                        if row:
-                            row["topic"] = label
-                            feed.append(row)
-                except Exception as exc:
-                    logger.warning("Discover topic %s failed: %r", label, exc)
+        # Use one lightweight news request instead of six sequential provider calls.
+        with DDGS(timeout=7) as ddgs:
+            raw = ddgs.news(
+                "Ghana world Africa technology business sports latest news",
+                region=region_code,
+                safesearch="moderate",
+                max_results=18,
+                page=1,
+            )
+            for item in raw:
+                row = normalize_result(item, "news")
+                if not row:
+                    continue
+                text_value = (row.get("title", "") + " " + row.get("description", "")).lower()
+                if any(word in text_value for word in ("ghana", "accra", "kumasi", "tamale")):
+                    row["topic"] = "Ghana"
+                elif any(word in text_value for word in ("technology", "ai ", "artificial intelligence", "software")):
+                    row["topic"] = "Technology"
+                elif any(word in text_value for word in ("business", "market", "economy", "finance")):
+                    row["topic"] = "Business"
+                elif any(word in text_value for word in ("football", "sports", "soccer", "league")):
+                    row["topic"] = "Sports"
+                elif "africa" in text_value:
+                    row["topic"] = "Africa"
+                else:
+                    row["topic"] = "World"
+                feed.append(row)
         feed = deduplicate(feed)
-        return jsonify(items=feed[:25], message="" if feed else "The news feed is temporarily unavailable.")
-    except Exception:
-        logger.exception("Discover feed failed")
+        return jsonify(items=feed[:18], message="" if feed else "The news feed is temporarily unavailable.")
+    except Exception as exc:
+        logger.warning("Discover feed request failed: %r", exc)
         return jsonify(items=[], message="The news feed is temporarily unavailable."), 200
 
 
