@@ -271,14 +271,33 @@ def suggestions():
         query = clean_text(request.args.get("q", ""), 100)
     if len(query) < 2:
         return jsonify(suggestions=[])
+    phrases = []
     try:
-        with DDGS(timeout=4) as ddgs:
+        with DDGS(timeout=2) as ddgs:
             items = list(ddgs.suggestions(query, region=REGIONS.get(session.get("region", "worldwide"), "wt-wt")))
         phrases = [clean_text(x.get("phrase"), 120) for x in items if x.get("phrase")]
-        return jsonify(suggestions=phrases[:8])
     except Exception as exc:
-        logger.warning("Suggestions failed: %r", exc)
-        return jsonify(suggestions=[])
+        logger.warning("Suggestions provider unavailable: %r", exc)
+
+    # Keep autocomplete useful even when the external provider is slow or unavailable.
+    if not phrases:
+        phrases = [
+            query + " news",
+            query + " meaning",
+            query + " in Ghana",
+            query + " today",
+            query + " images",
+            query + " videos",
+        ]
+
+    unique = []
+    seen = set()
+    for phrase in phrases:
+        key = phrase.casefold()
+        if phrase and key not in seen:
+            seen.add(key)
+            unique.append(phrase)
+    return jsonify(suggestions=unique[:8])
 
 
 @app.route("/related-searches", methods=["POST"])
