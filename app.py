@@ -277,7 +277,7 @@ def suggestions():
         return jsonify(suggestions=[])
     try:
         with DDGS(timeout=8) as ddgs:
-            items = list(ddgs.suggestions(query, region="wt-wt"))
+            items = list(ddgs.suggestions(query, region=REGIONS.get(session.get("region", "worldwide"), "wt-wt")))
         phrases = [clean_text(x.get("phrase"), 120) for x in items if x.get("phrase")]
         return jsonify(suggestions=phrases[:8])
     except Exception as exc:
