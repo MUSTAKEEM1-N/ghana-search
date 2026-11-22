@@ -336,18 +336,40 @@ def ai_chat():
     )
     is_greeting = bool(greeting_pattern.fullmatch(question.strip()))
 
+    history = session.get("ai_history", [])
+
     if is_greeting:
         source_links = []
         warning = ""
     else:
         region = session.get("region", "worldwide")
         safe = session.get("safe", "moderate")
-        sources, warning = search_web(question, "all", region, safe, 1)
+
+        # For short follow-ups, include the previous user question in the
+        # web search so words like "when?", "why?" and "what about it?"
+        # are searched with the right context.
+        previous_user_question = next(
+            (clean_text(turn.get("text"), 180)
+             for turn in reversed(history)
+             if turn.get("role") == "user" and turn.get("text")),
+            "",
+        )
+        followup_pattern = re.compile(
+            r"^(?:and\\b|also\\b|what about\\b|how about\\b|why\\b|when\\b|where\\b|who\\b|which\\b|how many\\b|how much\\b|tell me more\\b|explain more\\b|continue\\b|what happened\\b|is it\\b|does it\\b|can it\\b|they\\b|he\\b|she\\b|it\\b)",
+            re.IGNORECASE,
+        )
+        is_followup = bool(previous_user_question) and (
+            len(question.split()) <= 9 or followup_pattern.search(question.strip())
+        )
+        search_query = (
+            f"{previous_user_question} {question}"
+            if is_followup else question
+        )
+        sources, warning = search_web(search_query, "all", region, safe, 1)
         source_links = [
             {"title": x["title"], "url": x["url"], "description": x["description"]}
             for x in sources[:6] if x.get("url")
         ]
-    history = session.get("ai_history", [])
     try:
         answer = ai_reply(question, history, source_links)
         history.extend([
