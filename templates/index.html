@@ -122,6 +122,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:25px 12px;bor
 .spinner{width:27px;height:27px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 9px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .discover-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:20px 0}
+.discover-filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.discover-filter{border:1px solid var(--line);border-radius:22px;padding:8px 14px;background:var(--surface);color:var(--text);cursor:pointer}.discover-filter.active{background:var(--gold);border-color:var(--gold);color:#171717;font-weight:700}.suggestions button[aria-selected=true]{background:var(--surface2);outline:2px solid var(--gold);outline-offset:-2px}
 .discover-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);text-decoration:none;display:block}
 .discover-card img{width:100%;height:155px;object-fit:cover;background:var(--surface2)}
 .discover-body{padding:13px}
@@ -236,7 +237,16 @@ main{width:min(100% - 24px,1050px)}
 
 <section class="results-top">
 <h1>Discover</h1>
-<p style="color:var(--muted)">Explore recent Ghanaian and worldwide headlines and topics.</p>
+<p style="color:var(--muted)">Explore stories from Ghana and around the world. Choose a topic to shape your feed.</p>
+<div class="discover-filters" id="discoverFilters" aria-label="Discover topics">
+<button class="discover-filter active" type="button" data-topic="For You">For You</button>
+<button class="discover-filter" type="button" data-topic="Ghana">Ghana</button>
+<button class="discover-filter" type="button" data-topic="World">World</button>
+<button class="discover-filter" type="button" data-topic="Technology">Technology</button>
+<button class="discover-filter" type="button" data-topic="Business">Business</button>
+<button class="discover-filter" type="button" data-topic="Sports">Sports</button>
+<button class="discover-filter" type="button" data-topic="Africa">Africa</button>
+</div>
 </section>
 <div id="discoverMessage" class="empty">Loading the latest stories…</div>
 <div class="discover-grid" id="discoverGrid"></div>
@@ -553,59 +563,100 @@ $("saveSettings").addEventListener("click",()=>{
 const input=$("searchInput");
 const suggestionBox=$("suggestions");
 
-if(input){
+if(input&&suggestionBox){
+    let timer;
+    let activeSuggestion=-1;
+    let latestQuery="";
+    const suggestionCache=new Map();
+
+    function closeSuggestions(){
+        suggestionBox.classList.remove("show");
+        suggestionBox.innerHTML="";
+        activeSuggestion=-1;
+    }
+
+    function chooseSuggestion(value){
+        input.value=value;
+        closeSuggestions();
+        input.form.requestSubmit();
+    }
+
+    function highlightSuggestion(index){
+        const buttons=[...suggestionBox.querySelectorAll("button")];
+        if(!buttons.length)return;
+        activeSuggestion=(index+buttons.length)%buttons.length;
+        buttons.forEach((button,i)=>{
+            button.setAttribute("aria-selected",String(i===activeSuggestion));
+        });
+    }
+
     $("clearInput").addEventListener("click",()=>{
         input.value="";
+        closeSuggestions();
         input.focus();
     });
-
-    let timer;
 
     input.addEventListener("input",()=>{
         clearTimeout(timer);
         const q=input.value.trim();
+        latestQuery=q;
+        activeSuggestion=-1;
 
         if(q.length<2){
-            suggestionBox.classList.remove("show");
+            closeSuggestions();
             return;
         }
 
         timer=setTimeout(async()=>{
-            try{
-                const r=await fetch("/suggestions",{
-                    method:"POST",
-                    headers:{"Content-Type":"application/json"},
-                    body:JSON.stringify({query:q})
-                });
-
-                const d=await r.json();
-                suggestionBox.innerHTML="";
-
-                (d.suggestions||[]).forEach(s=>{
-                    const b=document.createElement("button");
-                    b.type="button";
-                    b.textContent=s;
-
-                    b.addEventListener("click",()=>{
-                        input.value=s;
-                        input.form.requestSubmit();
-                    });
-
-                    suggestionBox.appendChild(b);
-                });
-
-                suggestionBox.classList.toggle("show",suggestionBox.children.length>0);
-
-            }catch(e){
-                suggestionBox.classList.remove("show");
+            if(suggestionCache.has(q)){
+                renderSuggestions(suggestionCache.get(q));
+                return;
             }
-        },250);
+            try{
+                const r=await fetch("/suggestions?q="+encodeURIComponent(q));
+                const d=await r.json();
+                if(q!==latestQuery)return;
+                const phrases=d.suggestions||[];
+                suggestionCache.set(q,phrases);
+                if(suggestionCache.size>60)suggestionCache.delete(suggestionCache.keys().next().value);
+                renderSuggestions(phrases);
+            }catch(e){
+                closeSuggestions();
+            }
+        },120);
+    });
+
+    function renderSuggestions(phrases){
+        suggestionBox.innerHTML="";
+        activeSuggestion=-1;
+        phrases.forEach(phrase=>{
+            const b=document.createElement("button");
+            b.type="button";
+            b.setAttribute("role","option");
+            b.setAttribute("aria-selected","false");
+            b.textContent=phrase;
+            b.addEventListener("mousedown",e=>e.preventDefault());
+            b.addEventListener("click",()=>chooseSuggestion(phrase));
+            suggestionBox.appendChild(b);
+        });
+        suggestionBox.classList.toggle("show",suggestionBox.children.length>0);
+    }
+
+    input.addEventListener("keydown",e=>{
+        const buttons=suggestionBox.querySelectorAll("button");
+        if(e.key==="ArrowDown"&&buttons.length){
+            e.preventDefault();highlightSuggestion(activeSuggestion+1);
+        }else if(e.key==="ArrowUp"&&buttons.length){
+            e.preventDefault();highlightSuggestion(activeSuggestion<=0?buttons.length-1:activeSuggestion-1);
+        }else if(e.key==="Enter"&&activeSuggestion>=0&&buttons[activeSuggestion]){
+            e.preventDefault();chooseSuggestion(buttons[activeSuggestion].textContent);
+        }else if(e.key==="Escape"){
+            closeSuggestions();
+        }
     });
 
     document.addEventListener("click",e=>{
-        if(!e.target.closest(".search-form")){
-            suggestionBox.classList.remove("show");
-        }
+        if(!e.target.closest(".search-form"))closeSuggestions();
     });
 }
 
@@ -915,14 +966,18 @@ async function loadDiscover(){
     const grid=$("discoverGrid");
     if(!grid)return;
 
-    try{
-        const r=await fetch("/api/discover?region="+encodeURIComponent(localStorage.getItem("gs-region")||"{{ region }}"));
-        const d=await r.json();
+    let allStories=[];
+    const filters=$("discoverFilters");
+    const savedTopic=localStorage.getItem("gs-discover-topic")||"For You";
 
-        $("discoverMessage").textContent=d.message||((d.items||[]).length?"Latest stories":"No stories are available right now.");
+    function showTopic(topic){
+        localStorage.setItem("gs-discover-topic",topic);
+        filters?.querySelectorAll("button").forEach(button=>{
+            button.classList.toggle("active",button.dataset.topic===topic);
+        });
+        const visible=topic==="For You"?allStories:allStories.filter(item=>item.topic===topic);
         grid.innerHTML="";
-
-        (d.items||[]).forEach(item=>{
+        visible.forEach(item=>{
             const a=document.createElement("a");
             a.className="discover-card";
             a.href=item.url;
@@ -939,22 +994,36 @@ async function loadDiscover(){
 
             const body=document.createElement("div");
             body.className="discover-body";
-
-            const topic=document.createElement("div");
-            topic.className="topic";
-            topic.textContent=item.topic||"News";
-
+            const label=document.createElement("div");
+            label.className="topic";
+            label.textContent=item.topic||"News";
             const h=document.createElement("h3");
             h.textContent=item.title;
-
             const p=document.createElement("p");
             p.textContent=item.description||item.source||"";
-
-            body.append(topic,h,p);
+            body.append(label,h,p);
             a.appendChild(body);
             grid.appendChild(a);
         });
+        $("discoverMessage").textContent=visible.length
+            ?(topic==="For You"?"Stories selected for your Discover feed":topic+" stories")
+            :"No stories found for this topic right now. Try another topic.";
+    }
 
+    filters?.addEventListener("click",e=>{
+        const button=e.target.closest("button[data-topic]");
+        if(button)showTopic(button.dataset.topic);
+    });
+
+    try{
+        const r=await fetch("/api/discover?region="+encodeURIComponent(localStorage.getItem("gs-region")||"{{ region }}"));
+        const d=await r.json();
+        allStories=d.items||[];
+        if(!allStories.length){
+            $("discoverMessage").textContent=d.message||"No stories are available right now.";
+            return;
+        }
+        showTopic(savedTopic);
     }catch(e){
         $("discoverMessage").textContent="The news feed is temporarily unavailable.";
     }
@@ -1150,7 +1219,11 @@ if("serviceWorker" in navigator){
 
 {% if adsense_client and adsense_slot %}
 <script>
-(adsbygoogle=window.adsbygoogle||[]).push({});
+window.addEventListener("load",()=>{
+    document.querySelectorAll("ins.adsbygoogle").forEach(()=>{
+        try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(error){}
+    });
+});
 </script>
 {% endif %}
 
