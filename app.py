@@ -327,13 +327,26 @@ def ai_chat():
         return jsonify(error="Please wait a moment before sending another message."), 429
     session["last_ai_request"] = now
 
-    region = session.get("region", "worldwide")
-    safe = session.get("safe", "moderate")
-    sources, warning = search_web(question, "all", region, safe, 1)
-    source_links = [
-        {"title": x["title"], "url": x["url"], "description": x["description"]}
-        for x in sources[:6] if x.get("url")
-    ]
+    # Greetings and short social messages should go straight to AI.
+    # This avoids irrelevant web results and saves search-provider requests.
+    greeting_pattern = re.compile(
+        r"^(?:hi|hello|hey|hiya|howdy|good morning|good afternoon|good evening)"
+        r"(?: there)?[!.?, ]*$",
+        re.IGNORECASE,
+    )
+    is_greeting = bool(greeting_pattern.fullmatch(question.strip()))
+
+    if is_greeting:
+        source_links = []
+        warning = ""
+    else:
+        region = session.get("region", "worldwide")
+        safe = session.get("safe", "moderate")
+        sources, warning = search_web(question, "all", region, safe, 1)
+        source_links = [
+            {"title": x["title"], "url": x["url"], "description": x["description"]}
+            for x in sources[:6] if x.get("url")
+        ]
     history = session.get("ai_history", [])
     try:
         answer = ai_reply(question, history, source_links)
