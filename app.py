@@ -355,7 +355,7 @@ def ai_chat():
             "",
         )
         followup_pattern = re.compile(
-            r"^(?:and\\b|also\\b|what about\\b|how about\\b|why\\b|when\\b|where\\b|who\\b|which\\b|how many\\b|how much\\b|tell me more\\b|explain more\\b|continue\\b|what happened\\b|is it\\b|does it\\b|can it\\b|they\\b|he\\b|she\\b|it\\b)",
+            r"^(?:and\b|also\b|what about\b|how about\b|why\b|when\b|where\b|who\b|which\b|how many\b|how much\b|tell me more\b|explain more\b|continue\b|what happened\b|is it\b|does it\b|can it\b|they\b|he\b|she\b|it\b)",
             re.IGNORECASE,
         )
         is_followup = bool(previous_user_question) and (
