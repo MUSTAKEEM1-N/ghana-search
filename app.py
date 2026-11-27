@@ -198,7 +198,7 @@ def result_matches_query(item, query):
     text_value = re.sub(r"[^a-z0-9]+", " ", text_value)
     matches = sum(
         1 for term in set(terms)
-        if re.search(r"\\b" + re.escape(term) + r"\\b", text_value)
+        if re.search(r"\b" + re.escape(term) + r"\b", text_value)
     )
     required = 1 if len(set(terms)) <= 2 else 2
     return matches >= required
