@@ -460,6 +460,46 @@ body.ai-mode-open{overflow:hidden}
  .home-feed-status{padding:20px 0;text-align:center;color:#bdc1c6;font-size:14px}
 }
 
+
+/* Restore the classic GHANA SEARCH holiday homepage shown in the user's reference */
+@media(max-width:650px){
+ body{background:#101214!important;color:#f1f3f4!important}
+ .browser-tabs{height:94px;padding:12px 16px 10px;align-items:center;background:#202328!important;border-bottom:1px solid #34383e}
+ .mobile-home-link{display:none!important}
+ .mobile-tab-count{display:grid!important;width:68px;height:68px;border-radius:18px;background:#191b1f;color:#f1f3f4;border:2px solid #34383e;font-size:26px}
+ .new-browser-tab{width:68px;height:68px;border-radius:50%;background:#191b1f;color:#c99b36;border:2px solid #34383e;font-size:38px}
+ .mobile-menu-button{display:none!important}
+ .topbar{height:110px;min-height:110px;padding:0 24px!important;background:#101214!important;border-bottom:3px solid #b52e38!important;display:flex;align-items:center}
+ .brand{font-size:17px!important;letter-spacing:1.5px!important;font-weight:800;gap:12px}
+ .brand-mark{width:64px!important;height:64px!important;border:4px solid #b52e38!important;border-radius:19px!important;display:grid!important;place-items:center;font-size:24px!important;color:#b52e38!important}
+ .top-actions{gap:12px}
+ #themeToggle{width:80px;height:80px;border-radius:50%;background:#202a31;border:2px solid #303a42;color:#f1f3f4;font-size:26px}
+ #menuToggle{font-size:27px}
+ .christmas-banner{display:flex!important;min-height:112px;padding:20px 34px!important;align-items:center;justify-content:center;background:linear-gradient(100deg,#781e27,#a52b35,#781e27)!important;font-size:22px!important;line-height:1.5;letter-spacing:2px;text-align:center}
+ .snow-layer{display:block!important}
+ .snowflake{z-index:1}
+ main{width:calc(100% - 48px)!important;max-width:680px;margin:0 auto}
+ .home-hero{min-height:0!important;height:auto!important;padding:260px 0 30px!important;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center}
+ .logo-word{font-size:clamp(39px,10vw,66px)!important;line-height:1.15!important;letter-spacing:-2.5px!important;font-weight:700!important;margin:0 0 28px!important;white-space:nowrap}
+ .logo-word span{background:linear-gradient(100deg,#b52e38 5%,#c99b36 48%,#21834a 95%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+ .tagline{display:block!important;font-size:26px!important;line-height:1.4;margin:0 0 26px!important;color:#aeb4bd!important}
+ .christmas-greeting{display:block!important;font-size:26px!important;line-height:1.4;margin:0 0 52px!important;color:#bdc1c6!important;letter-spacing:.5px}
+ .search-form{width:100%!important;max-width:100%!important}
+ .search-shell{height:104px!important;border-radius:60px!important;padding:0 28px!important;gap:18px!important;background:#191b1f!important;border:2px solid #34383e!important;box-shadow:none!important}
+ .search-shell:focus-within{border-color:#555b63!important;box-shadow:none!important}
+ .search-symbol{flex:0 0 24px;width:24px;height:24px;font-size:0!important}
+ .search-shell input{font-size:27px!important;color:#f1f3f4!important}
+ .search-shell input::placeholder{color:#85898f!important;opacity:1}
+ .search-shell .clear-btn{font-size:38px!important;color:#aeb4bd!important;padding:0 4px}
+ .home-language-row,.home-mode-actions,.shortcuts-panel,.home-feed{display:none!important}
+ .home-extra-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:32px 26px!important;margin:32px 20px 0!important}
+ .home-extra-actions>*{min-height:112px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 12px!important;border-radius:19px!important;font-size:26px!important;line-height:1.3!important;text-decoration:none!important;white-space:normal}
+ .home-extra-actions .primary-btn{background:#b52e38!important;border-color:#b52e38!important;color:#fff!important;font-weight:700!important}
+ .home-extra-actions .secondary-btn{background:#22252a!important;border:2px solid #34383e!important;color:#f1f3f4!important}
+ .home-link-btn{display:flex!important}
+}
+@media(min-width:651px){.home-link-btn{display:inline-flex;align-items:center;text-decoration:none}}
+
 </style>
 </head>
 
@@ -571,11 +611,9 @@ body.ai-mode-open{overflow:hidden}
 <input type="hidden" name="incognito" id="incognitoValue" value="0">
 
 <div class="search-shell">
-<button class="search-tool" type="button" id="searchPlus" aria-label="Search tools">＋</button>
 <span class="search-symbol">⌕</span>
-<input id="searchInput" name="search" type="search" placeholder="GHANA SEARCH" required autofocus>
-<button class="search-tool" type="button" id="voiceSearch" aria-label="Voice search" title="Voice search">🎙</button>
-<button class="search-tool" type="button" id="visualSearch" aria-label="Search images" title="Search images">▣</button>
+<input id="searchInput" name="search" type="search" placeholder="Search anything around the world" required autofocus>
+<button class="clear-btn" type="button" id="clearHomeSearch" aria-label="Clear search">×</button>
 </div>
 <div class="suggestions" id="suggestions"></div>
 <div class="home-language-row"><span id="languagePrompt">GHANA SEARCH available in:</span><button type="button" class="language-name" data-lang="en">English</button><button type="button" class="language-name" data-lang="ha">Hausa</button><button type="button" class="language-name" data-lang="ak">Akan</button><button type="button" class="language-name" data-lang="ee">Ewe</button><button type="button" class="language-name" data-lang="gaa">Ga</button></div>
@@ -584,8 +622,10 @@ body.ai-mode-open{overflow:hidden}
 <button class="mode-pill" type="button" id="incognitoButton">♙ &nbsp; Incognito</button>
 </div>
 <div class="search-actions home-extra-actions">
-<button class="primary-btn" type="submit">Search</button>
+<button class="primary-btn" type="submit">GHANA SEARCH</button>
 <button class="secondary-btn" type="button" id="luckyBtn">I'm Feeling Curious</button>
+<a class="secondary-btn home-link-btn" href="/discover">Explore Discover</a>
+<a class="secondary-btn home-link-btn" href="/support">Support the Creator</a>
 </div>
 </form>
 <section class="shortcuts-panel" aria-label="Website shortcuts">
@@ -905,6 +945,8 @@ $("saveSettings").addEventListener("click",()=>{
     panel.classList.remove("open");
 });
 
+const clearHomeSearch=$("clearHomeSearch");
+if(clearHomeSearch)clearHomeSearch.addEventListener("click",()=>{const field=$("searchInput");if(field){field.value="";field.focus();}});
 const input=$("searchInput");
 const suggestionBox=$("suggestions");
 
