@@ -372,6 +372,15 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
  .home-feed-head{width:100%;text-align:left}
 }
 
+
+.language-name{border:0;background:transparent;font:inherit;color:#9fc2ff;cursor:pointer;padding:5px 2px}
+.language-name.active{ text-decoration:underline;text-underline-offset:5px;font-weight:700}
+.mobile-quick-menu{display:none}
+.mobile-quick-menu.open{display:flex;position:fixed;z-index:100;right:12px;bottom:72px;flex-direction:column;min-width:210px;padding:9px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 30px #0008}
+.mobile-quick-menu a,.mobile-quick-menu button{display:block;text-align:left;text-decoration:none;color:var(--text);background:transparent;border:0;padding:13px 12px;font:inherit;border-radius:9px}
+.mobile-quick-menu a:active,.mobile-quick-menu button:active{background:var(--surface2)}
+@media(min-width:651px){.mobile-quick-menu{display:none!important}}
+
 </style>
 </head>
 
@@ -383,6 +392,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 <button class="mobile-tab-count" id="mobileTabCount" type="button" aria-label="Show tabs">1</button>
 <button class="new-browser-tab" id="newBrowserTab" type="button" title="New tab">+</button>
 <button class="mobile-menu-button" type="button" id="mobileMenuButton" aria-label="Open menu">⋮</button>
+<nav class="mobile-quick-menu" id="mobileQuickMenu"><button type="button" id="mobileOpenSettings">⚙ Search settings</button><a href="/discover">Discover</a><a href="/support">Support the Creator</a><a href="#history">Search history</a><button type="button" id="mobileThemeChoice">Toggle appearance</button><a href="/health">Service status</a></nav>
 </div>
 <div class="mobile-tab-grid" id="mobileTabGrid"></div>
 
@@ -489,7 +499,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 <button class="search-tool" type="button" id="visualSearch" aria-label="Search images" title="Search images">▣</button>
 </div>
 <div class="suggestions" id="suggestions"></div>
-<div class="home-language-row"><span>GHANA SEARCH available in:</span> <span class="language-name">English</span><span class="language-name">Hausa</span><span class="language-name">Akan</span><span class="language-name">Ewe</span><span class="language-name">Ga</span></div>
+<div class="home-language-row"><span id="languagePrompt">GHANA SEARCH available in:</span><button type="button" class="language-name" data-lang="en">English</button><button type="button" class="language-name" data-lang="ha">Hausa</button><button type="button" class="language-name" data-lang="ak">Akan</button><button type="button" class="language-name" data-lang="ee">Ewe</button><button type="button" class="language-name" data-lang="gaa">Ga</button></div>
 <div class="home-mode-actions">
 <button class="mode-pill" type="button" id="aiModeButton">✦ &nbsp; AI Mode</button>
 <button class="mode-pill" type="button" id="incognitoButton">♙ &nbsp; Incognito</button>
@@ -1584,5 +1594,39 @@ window.addEventListener("load",()=>{
 </script>
 {% endif %}
 
+<script>
+(()=>{
+ const dict={
+ en:{prompt:"GHANA SEARCH available in:",search:"Search GHANA SEARCH or type…",ai:"✦  AI Mode",incog:"♙  Incognito",trend:"Trending searches",more:"More trends →",settings:"Search settings",discover:"Discover"},
+ ha:{prompt:"GHANA SEARCH yana samuwa a:",search:"Nemo a GHANA SEARCH…",ai:"✦  Yanayin AI",incog:"♙  Bincike na sirri",trend:"Abubuwan da ake nema",more:"Duba ƙari →",settings:"Saitunan bincike",discover:"Bincike"},
+ ak:{prompt:"GHANA SEARCH wɔ kasa yi mu:",search:"Hwehwɛ wɔ GHANA SEARCH…",ai:"✦  AI tebea",incog:"♙  Ahintasɛm",trend:"Nneɛma a wɔrehwehwɛ",more:"Hwɛ pii →",settings:"Nhwehwɛmu nhyehyɛe",discover:"Hwehwɛ"},
+ ee:{prompt:"GHANA SEARCH le gbe siawo me:",search:"Di gbe le GHANA SEARCH…",ai:"✦  AI ƒe nɔnɔme",incog:"♙  Nyatakakadzra",trend:"Nyatakaka siwo wodi",more:"Kpɔ bubu →",settings:"Didiɖo ƒe ɖoɖowo",discover:"Didiɖo"},
+ gaa:{prompt:"GHANA SEARCH wɔ kasa ni:",search:"Kɛɛ GHANA SEARCH…",ai:"✦  AI niŋ",incog:"♙  Shikaŋ",trend:"Nii amɛ tsɔɔ",more:"Kɛɛ pii →",settings:"Search settings",discover:"Kɛɛ"}
+ };
+ function applyLanguage(code){
+  const d=dict[code]||dict.en;
+  const prompt=document.getElementById("languagePrompt"),search=document.getElementById("searchInput"),ai=document.getElementById("aiModeButton"),inc=document.getElementById("incognitoButton"),trend=document.querySelector(".home-feed-head h2"),more=document.querySelector(".home-feed-head a"),settings=document.getElementById("mobileOpenSettings");
+  if(prompt)prompt.textContent=d.prompt;
+  if(search)search.placeholder=d.search;
+  if(ai)ai.textContent=d.ai;
+  if(inc&&!inc.classList.contains("active"))inc.textContent=d.incog;
+  if(trend)trend.textContent=d.trend;
+  if(more)more.textContent=d.more;
+  if(settings)settings.textContent="⚙ "+d.settings;
+  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===code));
+  try{localStorage.setItem("gs-language",code)}catch(e){}
+ }
+ document.querySelectorAll("[data-lang]").forEach(b=>b.addEventListener("click",()=>applyLanguage(b.dataset.lang)));
+ let saved="en";try{saved=localStorage.getItem("gs-language")||"en"}catch(e){}
+ applyLanguage(saved);
+ const quick=document.getElementById("mobileQuickMenu"),trigger=document.getElementById("mobileMenuButton");
+ if(trigger&&quick)trigger.addEventListener("click",e=>{e.stopPropagation();quick.classList.toggle("open")});
+ const open=document.getElementById("mobileOpenSettings"),panel=document.getElementById("settingsPanel");
+ if(open&&panel)open.addEventListener("click",()=>{quick.classList.remove("open");panel.classList.add("open")});
+ const theme=document.getElementById("mobileThemeChoice");
+ if(theme)theme.addEventListener("click",()=>{toggleTheme();quick.classList.remove("open")});
+ document.addEventListener("click",e=>{if(quick&&!quick.contains(e.target)&&e.target!==trigger)quick.classList.remove("open")});
+})();
+</script>
 </body>
 </html>
