@@ -111,13 +111,14 @@ def normalize_result(item, search_type):
 
 
 
-def fetch_discover_rss(region_code="wt-wt"):
+def fetch_discover_rss(region_code="wt-wt", page=1):
     """Fallback Discover feed using Google News RSS when DDGS is unavailable."""
     params = {
         "q": "Ghana OR Africa OR world OR technology OR business OR sports",
         "hl": "en",
         "gl": "GH" if region_code == "gh-en" else "US",
         "ceid": "GH:en" if region_code == "gh-en" else "US:en",
+        "start": str(max(0, (page - 1) * 18)),
     }
     rss_url = "https://news.google.com/rss/search?" + urlencode(params)
     req = Request(
@@ -131,7 +132,14 @@ def fetch_discover_rss(region_code="wt-wt"):
     for item in root.findall(".//item")[:18]:
         title = clean_text(item.findtext("title"), 250)
         link = clean_url(item.findtext("link"))
-        description = clean_text(item.findtext("description"), 650)
+        raw_description = item.findtext("description") or ""
+        description = clean_text(raw_description, 650)
+        image = ""
+        for image_tag in item.iter():
+            if image_tag.tag.endswith(("}thumbnail", "}content", "}enclosure")):
+                image = clean_url(image_tag.attrib.get("url", ""))
+                if image:
+                    break
         if not title or not link:
             continue
         value = (title + " " + description).lower()
@@ -151,7 +159,7 @@ def fetch_discover_rss(region_code="wt-wt"):
             "title": title,
             "description": description,
             "url": link,
-            "image": "",
+            "image": image,
             "category": "NEWS",
             "source": "Google News",
             "date": clean_text(item.findtext("pubDate"), 80),
@@ -464,54 +472,49 @@ def discover():
 def api_discover():
     region = request.args.get("region", session.get("region", "worldwide"))
     region_code = REGIONS.get(region, "wt-wt")
-
     try:
-        # Primary provider: DuckDuckGo news.
+        page = max(1, min(int(request.args.get("page", "1")), 10))
+    except (TypeError, ValueError):
+        page = 1
+    try:
         with DDGS(timeout=5) as ddgs:
             raw = ddgs.news(
-                "Ghana world Africa technology business sports latest news",
-                region=region_code,
-                safesearch="moderate",
-                max_results=18,
-                page=1,
+                "trending breaking latest world news",
+                region=region_code, safesearch="moderate",
+                max_results=18, page=page,
             )
             feed = []
             for item in raw:
                 row = normalize_result(item, "news")
                 if not row:
                     continue
-                text_value = (row.get("title", "") + " " + row.get("description", "")).lower()
-                if any(word in text_value for word in ("ghana", "accra", "kumasi", "tamale")):
+                value = (row.get("title", "") + " " + row.get("description", "")).lower()
+                if any(w in value for w in ("ghana", "accra", "kumasi", "tamale")):
                     row["topic"] = "Ghana"
-                elif any(word in text_value for word in ("technology", "ai ", "artificial intelligence", "software")):
+                elif any(w in value for w in ("technology", "artificial intelligence", "software")):
                     row["topic"] = "Technology"
-                elif any(word in text_value for word in ("business", "market", "economy", "finance")):
+                elif any(w in value for w in ("business", "market", "economy", "finance")):
                     row["topic"] = "Business"
-                elif any(word in text_value for word in ("football", "sports", "soccer", "league")):
+                elif any(w in value for w in ("football", "sports", "soccer", "league")):
                     row["topic"] = "Sports"
-                elif "africa" in text_value:
+                elif "africa" in value:
                     row["topic"] = "Africa"
                 else:
                     row["topic"] = "World"
+                feed.append(row)
         feed = deduplicate(feed)
         if feed:
             return jsonify(items=feed[:18], message="")
-
         logger.warning("Discover primary provider returned no stories; trying RSS fallback.")
     except Exception as exc:
         logger.warning("Discover primary provider failed: %r; trying RSS fallback.", exc)
-
     try:
-        feed = deduplicate(fetch_discover_rss(region_code))
+        feed = deduplicate(fetch_discover_rss(region_code, page=page))
         if feed:
             return jsonify(items=feed[:18], message="")
     except Exception as exc:
         logger.warning("Discover RSS fallback failed: %r", exc)
-
-    return jsonify(
-        items=[],
-        message="Discover is temporarily unable to reach its news sources. Please try again shortly."
-    ), 200
+    return jsonify(items=[], message="Worldwide trending stories are temporarily unavailable. Please try again shortly."), 200
 
 
 @app.route("/support")
