@@ -1585,6 +1585,25 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
  const incognito=$("incognitoButton"),value=$("incognitoValue"),search=$("searchInput");
  if(incognito&&value)incognito.addEventListener("click",()=>{const on=value.value!=="1";value.value=on?"1":"0";incognito.classList.toggle("active",on);incognito.textContent=on?"♙  Incognito is on":"♙  Incognito";});
  const ai=$("aiModeButton");if(ai)ai.addEventListener("click",openAIMode);
+ const plus=$("searchPlus");
+ if(plus&&search){
+  let picker=document.getElementById("searchToolsPicker");
+  if(!picker){
+   picker=document.createElement("div");picker.id="searchToolsPicker";
+   picker.setAttribute("role","group");picker.setAttribute("aria-label","Choose search type");
+   picker.style.cssText="position:absolute;z-index:100;left:12px;top:calc(100% + 10px);display:none;min-width:170px;padding:8px;background:#202a31;border:1px solid #53616a;border-radius:14px;box-shadow:0 8px 24px #0008";
+   [ ["all","All results"],["images","Images"],["videos","Videos"],["news","News"] ].forEach(([value,label])=>{
+    const option=document.createElement("button");option.type="button";option.textContent=label;
+    option.style.cssText="display:block;width:100%;padding:12px;text-align:left;border:0;border-radius:8px;background:transparent;color:#f1f3f4;font-size:15px";
+    option.addEventListener("click",()=>{const type=search.form.querySelector('[name=\"search_type\"]');if(type)type.value=value;search.placeholder=value==="all"?"Ask GHANA SEARCH Anything":"Search for "+label.toLowerCase()+"…";picker.style.display="none";search.focus();});
+    picker.appendChild(option);
+   });
+   const shell=search.closest(".search-shell");if(shell){shell.style.position="relative";shell.appendChild(picker);}
+  }
+  plus.setAttribute("aria-expanded","false");
+  plus.addEventListener("click",()=>{const show=picker.style.display==="none";picker.style.display=show?"block":"none";plus.setAttribute("aria-expanded",show?"true":"false");});
+  document.addEventListener("click",e=>{if(!picker.contains(e.target)&&e.target!==plus){picker.style.display="none";plus.setAttribute("aria-expanded","false");}});
+ }
  const voice=$("voiceSearch");if(voice&&search)voice.addEventListener("click",()=>{const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S){alert("Voice search is not supported by this browser.");return;}const rec=new S();rec.lang="en-GH";rec.interimResults=false;voice.textContent="…";rec.onresult=e=>{search.value=e.results[0][0].transcript;search.form.requestSubmit();};rec.onerror=()=>voice.textContent="🎙";rec.onend=()=>voice.textContent="🎙";rec.start();});
  const visual=$("visualSearch");if(visual&&search)visual.addEventListener("click",()=>{const type=search.form.querySelector('[name="search_type"]');if(type)type.value="images";search.placeholder="Search for images…";search.focus();});
  const add=$("addShortcut"),list=$("shortcutList"),shortcutKey="gs-home-shortcuts-v1";
