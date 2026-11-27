@@ -381,6 +381,41 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 .mobile-quick-menu a:active,.mobile-quick-menu button:active{background:var(--surface2)}
 @media(min-width:651px){.mobile-quick-menu{display:none!important}}
 
+
+/* Full-screen conversational AI Mode */
+.ai-mode-screen{display:none;position:fixed;inset:0 0 66px;z-index:180;background:#202124;color:#e8eaed;flex-direction:column;overflow:hidden}
+.ai-mode-screen.open{display:flex}
+.ai-mode-top{height:70px;flex:0 0 70px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid #3c4043;background:#202124}
+.ai-mode-close,.ai-mode-clear{border:0;background:transparent;color:#e8eaed;font-size:28px;width:42px;height:42px;border-radius:50%}
+.ai-mode-brand{display:flex;flex-direction:column;flex:1;gap:2px}
+.ai-mode-brand strong{font-size:16px;letter-spacing:.4px}
+.ai-mode-brand span{font-size:12px;color:#aeb4bd}
+.ai-mode-tabs{display:flex;gap:0;overflow-x:auto;white-space:nowrap;border-bottom:1px solid #3c4043;scrollbar-width:none}
+.ai-mode-tabs button{flex:0 0 auto;border:0;background:transparent;color:#aeb4bd;padding:17px 18px;font-size:14px}
+.ai-mode-tabs button.selected{color:#a8c7fa;border-bottom:3px solid #a8c7fa;font-weight:700}
+.ai-mode-conversation{flex:1;min-height:0;overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column}
+.ai-mode-welcome{margin:auto;text-align:center;max-width:540px;padding:24px 8px}
+.ai-mode-spark{font-size:38px;color:#a8c7fa;margin-bottom:18px}
+.ai-mode-welcome h1{font-size:clamp(27px,6vw,40px);font-weight:400;line-height:1.2;margin:0 0 12px}
+.ai-mode-welcome p{font-size:clamp(24px,5vw,34px);margin:0 0 18px}
+.ai-mode-welcome span{font-size:14px;color:#aeb4bd}
+.ai-mode-messages{width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.ai-mode-message{max-width:88%;padding:14px 17px;border-radius:20px;line-height:1.55;font-size:16px;overflow-wrap:anywhere}
+.ai-mode-message.user{align-self:flex-end;background:#39434d;color:#f1f3f4;border-bottom-right-radius:6px}
+.ai-mode-message.assistant{align-self:flex-start;background:transparent;color:#e8eaed;padding:8px 2px;max-width:100%}
+.ai-mode-message.assistant p{margin:8px 0}
+.ai-mode-message.assistant h2,.ai-mode-message.assistant h3{margin:18px 0 8px}
+.ai-mode-message .ai-sources{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.ai-mode-message .ai-sources a{color:#a8c7fa;font-size:13px}
+.ai-mode-composer{flex:0 0 auto;display:flex;align-items:center;gap:10px;margin:12px 16px 8px;padding:10px 12px;background:#303134;border:1px solid #555961;border-radius:34px;min-height:62px}
+.ai-mode-composer input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#f1f3f4;font-size:16px}
+.ai-mode-composer input::placeholder{color:#aeb4bd}
+.ai-mode-add,.ai-mode-voice,.ai-mode-send{flex:0 0 38px;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:#e8eaed;font-size:23px}
+.ai-mode-send{background:#a8c7fa;color:#202124;font-size:19px}
+.ai-mode-note{text-align:center;color:#9aa0a6;font-size:10px;padding:0 10px 8px}
+body.ai-mode-open{overflow:hidden}
+@media(min-width:700px){.ai-mode-screen{inset:0 0 0}.ai-mode-top{height:76px}.ai-mode-conversation{padding-top:42px}.ai-mode-composer{max-width:780px;width:calc(100% - 40px);align-self:center;margin-bottom:16px}}
+
 </style>
 </head>
 
@@ -657,6 +692,33 @@ for <strong>{{ query }}</strong>
 </section>
 
 </main>
+
+<div class="ai-mode-screen" id="aiModeScreen" aria-hidden="true">
+ <header class="ai-mode-top">
+  <button type="button" class="ai-mode-close" id="closeAIMode" aria-label="Back to search">←</button>
+  <div class="ai-mode-brand"><strong>GHANA SEARCH AI</strong><span>Ask anything</span></div>
+  <button type="button" class="ai-mode-clear" id="clearAIMode" aria-label="Clear conversation">⋮</button>
+ </header>
+ <nav class="ai-mode-tabs" aria-label="AI search modes">
+  <button type="button" class="selected" data-aimode="ai">✦ AI Mode</button>
+  <button type="button" data-aimode="all">All</button>
+  <button type="button" data-aimode="images">Images</button>
+  <button type="button" data-aimode="videos">Videos</button>
+  <button type="button" data-aimode="news">News</button>
+ </nav>
+ <section class="ai-mode-conversation" id="aiModeConversation">
+  <div class="ai-mode-welcome" id="aiModeWelcome"><div class="ai-mode-spark">✦</div><h1>Hi, welcome to GHANA SEARCH.</h1><p>What's on your mind?</p><span>Ask questions, explore ideas, or search the world.</span></div>
+  <div class="ai-mode-messages" id="aiModeMessages"></div>
+ </section>
+ <form class="ai-mode-composer" id="aiModeForm">
+  <button type="button" class="ai-mode-add" id="aiModeAdd" aria-label="More options">＋</button>
+  <input id="aiModeInput" type="text" placeholder="Ask anything" autocomplete="off" required>
+  <button type="button" class="ai-mode-voice" id="aiModeVoice" aria-label="Voice input">🎙</button>
+  <button type="submit" class="ai-mode-send" aria-label="Send message">➤</button>
+ </form>
+ <div class="ai-mode-note">GHANA SEARCH AI can make mistakes. Check important information.</div>
+</div>
+
 
 <footer>
 <div>GHANA SEARCH · Independent search experience</div>
@@ -1266,7 +1328,7 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
 (()=> {
  const incognito=$("incognitoButton"),value=$("incognitoValue"),search=$("searchInput");
  if(incognito&&value)incognito.addEventListener("click",()=>{const on=value.value!=="1";value.value=on?"1":"0";incognito.classList.toggle("active",on);incognito.textContent=on?"♙  Incognito is on":"♙  Incognito";});
- const ai=$("aiModeButton");if(ai&&search)ai.addEventListener("click",()=>{const type=search.form.querySelector('[name="search_type"]');if(type)type.value="all";search.placeholder="Ask GHANA SEARCH AI anything…";search.focus();ai.classList.add("active");});
+ const ai=$("aiModeButton");if(ai)ai.addEventListener("click",openAIMode);
  const voice=$("voiceSearch");if(voice&&search)voice.addEventListener("click",()=>{const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S){alert("Voice search is not supported by this browser.");return;}const rec=new S();rec.lang="en-GH";rec.interimResults=false;voice.textContent="…";rec.onresult=e=>{search.value=e.results[0][0].transcript;search.form.requestSubmit();};rec.onerror=()=>voice.textContent="🎙";rec.onend=()=>voice.textContent="🎙";rec.start();});
  const visual=$("visualSearch");if(visual&&search)visual.addEventListener("click",()=>{const type=search.form.querySelector('[name="search_type"]');if(type)type.value="images";search.placeholder="Search for images…";search.focus();});
  const add=$("addShortcut"),list=$("shortcutList"),shortcutKey="gs-home-shortcuts-v1";
@@ -1630,6 +1692,74 @@ window.addEventListener("load",()=>{
  if(theme)theme.addEventListener("click",()=>{toggleTheme();quick.classList.remove("open")});
  document.addEventListener("click",e=>{if(quick&&!quick.contains(e.target)&&e.target!==trigger)quick.classList.remove("open")});
 })();
+</script>
+<script>
+
+function openAIMode(){
+ const screen=$("aiModeScreen");
+ if(!screen)return;
+ screen.classList.add("open");
+ screen.setAttribute("aria-hidden","false");
+ document.body.classList.add("ai-mode-open");
+ setTimeout(()=>{$("aiModeInput")?.focus()},80);
+}
+function closeAIMode(){
+ const screen=$("aiModeScreen");
+ if(!screen)return;
+ screen.classList.remove("open");
+ screen.setAttribute("aria-hidden","true");
+ document.body.classList.remove("ai-mode-open");
+}
+const aiModeClose=$("closeAIMode");
+if(aiModeClose)aiModeClose.addEventListener("click",closeAIMode);
+const aiModeForm=$("aiModeForm");
+if(aiModeForm)aiModeForm.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const field=$("aiModeInput"),q=field.value.trim();
+ if(!q)return;
+ const welcome=$("aiModeWelcome"),messages=$("aiModeMessages"),conversation=$("aiModeConversation");
+ if(welcome)welcome.style.display="none";
+ const user=document.createElement("div");user.className="ai-mode-message user";user.textContent=q;messages.appendChild(user);
+ field.value="";
+ const answer=document.createElement("div");answer.className="ai-mode-message assistant";answer.textContent="Thinking…";messages.appendChild(answer);
+ conversation.scrollTop=conversation.scrollHeight;
+ const send=aiModeForm.querySelector('[type="submit"]');send.disabled=true;
+ try{
+  const response=await fetch("/ai-chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query:q})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"GHANA SEARCH AI is unavailable right now.");
+  renderMarkdown(answer,data.answer||"No answer returned.");
+  if(data.sources&&data.sources.length){const links=document.createElement("div");links.className="ai-sources";data.sources.forEach(source=>{const a=document.createElement("a");a.href=source.url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=source.title||source.url;links.appendChild(a)});answer.appendChild(links)}
+  if(data.search_warning){const warning=document.createElement("p");warning.textContent=data.search_warning;warning.style.color="#fbbc04";answer.appendChild(warning)}
+ }catch(err){answer.textContent=err.message||"Please try again."}
+ finally{send.disabled=false;field.focus();conversation.scrollTop=conversation.scrollHeight}
+});
+const clearAIMode=$("clearAIMode");
+if(clearAIMode)clearAIMode.addEventListener("click",async()=>{
+ try{await fetch("/ai-chat/clear",{method:"POST"})}catch(e){}
+ $("aiModeMessages").replaceChildren();
+ $("aiModeWelcome").style.display="";
+ $("aiModeInput").focus();
+});
+const voiceAIMode=$("aiModeVoice");
+if(voiceAIMode)voiceAIMode.addEventListener("click",()=>{
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Speech){alert("Voice input is not supported by this browser.");return}
+ const rec=new Speech();rec.lang="en-GH";rec.interimResults=false;
+ voiceAIMode.textContent="…";
+ rec.onresult=e=>{$("aiModeInput").value=e.results[0][0].transcript;$("aiModeInput").focus()};
+ rec.onerror=()=>voiceAIMode.textContent="🎙";rec.onend=()=>voiceAIMode.textContent="🎙";rec.start();
+});
+const addAIMode=$("aiModeAdd");
+if(addAIMode)addAIMode.addEventListener("click",()=>{$("aiModeInput").focus()});
+document.querySelectorAll("[data-aimode]").forEach(tab=>tab.addEventListener("click",()=>{
+ const mode=tab.dataset.aimode;
+ if(mode==="ai"){document.querySelectorAll("[data-aimode]").forEach(x=>x.classList.toggle("selected",x===tab));return}
+ closeAIMode();
+ const mainSearch=$("searchInput");
+ if(mainSearch){const type=mainSearch.form?.querySelector('[name="search_type"]');if(type)type.value=mode==="all"?"all":mode;mainSearch.focus()}
+}));
+
 </script>
 </body>
 </html>
