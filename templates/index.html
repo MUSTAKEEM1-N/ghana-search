@@ -326,6 +326,16 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
  .home-feed-status{padding:20px 0}
 }
 
+
+/* Functional controls and mobile theme visibility */
+@media(max-width:650px){
+ .topbar{position:absolute;top:72px;right:14px;width:auto;height:auto;min-height:0;padding:0;background:transparent;border:0;z-index:70}
+ .topbar .brand,.topbar .menu-wrap{display:none}
+ .top-actions{display:flex}
+ #themeToggle{width:48px;height:48px;border-radius:50%;background:var(--surface2);color:var(--text);border:1px solid var(--line);font-size:22px;box-shadow:0 2px 8px #0003}
+ .home-hero{padding-top:95px}
+}
+
 </style>
 </head>
 
@@ -681,12 +691,19 @@ document.querySelectorAll('form[method="post"][action="/"]').forEach(form=>{
 function setTheme(mode){
     const dark=mode==="dark"||(mode==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.classList.toggle("dark",dark);
-    localStorage.setItem("gs-theme",mode);
-    if($("appearanceSelect"))$("appearanceSelect").value=mode;
+    document.documentElement.dataset.theme=dark?"dark":"light";
+    try{localStorage.setItem("gs-theme",mode)}catch(e){}
+    const selector=$("appearanceSelect");
+    if(selector)selector.value=mode;
+    const toggle=$("themeToggle");
+    if(toggle){toggle.textContent=dark?"☀":"☾";toggle.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode");}
+    const menuTheme=$("menuTheme");
+    if(menuTheme)menuTheme.textContent=dark?"Appearance: dark (switch to light)":"Appearance: light (switch to dark)";
 }
 
 function toggleTheme(){
-    setTheme(document.documentElement.classList.contains("dark")?"light":"dark");
+    const currentlyDark=document.documentElement.classList.contains("dark");
+    setTheme(currentlyDark?"light":"dark");
 }
 
 $("themeToggle").addEventListener("click",toggleTheme);
@@ -766,7 +783,8 @@ if(input&&suggestionBox){
         });
     }
 
-    $("clearInput").addEventListener("click",()=>{
+    const clearInput=$("clearInput");
+    if(clearInput)clearInput.addEventListener("click",()=>{
         input.value="";
         closeSuggestions();
         input.focus();
