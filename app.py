@@ -36,7 +36,7 @@ REGIONS = {
     "nigeria": "ng-en", "south_africa": "za-en",
 }
 VALID_TYPES = {"all", "news", "images", "videos", "jobs"}
-RESULTS_PER_PAGE = 20
+RESULTS_PER_PAGE = 12
 MAX_PAGE = 20
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 PAYSTACK_API = "https://api.paystack.co"
