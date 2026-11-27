@@ -1174,10 +1174,18 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
 (()=> {
  const incognito=$("incognitoButton"),value=$("incognitoValue"),search=$("searchInput");
  if(incognito&&value)incognito.addEventListener("click",()=>{const on=value.value!=="1";value.value=on?"1":"0";incognito.classList.toggle("active",on);incognito.textContent=on?"♙  Incognito is on":"♙  Incognito";});
- const ai=$("aiModeButton");if(ai&&search)ai.addEventListener("click",()=>{search.placeholder="Ask GHANA SEARCH AI anything…";search.focus();ai.classList.add("active");});
+ const ai=$("aiModeButton");if(ai&&search)ai.addEventListener("click",()=>{const type=search.form.querySelector('[name="search_type"]');if(type)type.value="all";search.placeholder="Ask GHANA SEARCH AI anything…";search.focus();ai.classList.add("active");});
  const voice=$("voiceSearch");if(voice&&search)voice.addEventListener("click",()=>{const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S){alert("Voice search is not supported by this browser.");return;}const rec=new S();rec.lang="en-GH";rec.interimResults=false;voice.textContent="…";rec.onresult=e=>{search.value=e.results[0][0].transcript;search.form.requestSubmit();};rec.onerror=()=>voice.textContent="🎙";rec.onend=()=>voice.textContent="🎙";rec.start();});
  const visual=$("visualSearch");if(visual&&search)visual.addEventListener("click",()=>{const type=search.form.querySelector('[name="search_type"]');if(type)type.value="images";search.placeholder="Search for images…";search.focus();});
- const add=$("addShortcut"),list=$("shortcutList");if(add&&list)add.addEventListener("click",()=>{const name=prompt("Website name:");if(!name)return;const address=prompt("Website address (include https://):");if(!address)return;try{const u=new URL(address);if(!["http:","https:"].includes(u.protocol))throw 0;const a=document.createElement("a");a.className="shortcut";a.href=u.href;a.target="_blank";a.rel="noopener";const i=document.createElement("span");i.className="shortcut-icon";i.textContent=name.trim().slice(0,1).toUpperCase();const label=document.createElement("span");label.textContent=name.trim();a.append(i,label);list.insertBefore(a,add);}catch(e){alert("Enter a valid website address beginning with https://");}});
+ const add=$("addShortcut"),list=$("shortcutList"),shortcutKey="gs-home-shortcuts-v1";
+ function addShortcut(name,address,save){
+  const a=document.createElement("a");a.className="shortcut";a.href=address;a.target="_blank";a.rel="noopener";
+  const i=document.createElement("span");i.className="shortcut-icon";i.textContent=name.trim().slice(0,1).toUpperCase();
+  const label=document.createElement("span");label.textContent=name.trim();a.append(i,label);list.insertBefore(a,add);
+  if(save){let items=[];try{items=JSON.parse(localStorage.getItem(shortcutKey)||"[]")}catch(e){}items.push({name,address});localStorage.setItem(shortcutKey,JSON.stringify(items.slice(-12)));}
+ }
+ if(list){try{const items=JSON.parse(localStorage.getItem(shortcutKey)||"[]");items.forEach(x=>{if(x&&x.name&&x.address)addShortcut(x.name,x.address,false);});}catch(e){}}
+ if(add&&list)add.addEventListener("click",()=>{const name=prompt("Website name:");if(!name)return;const address=prompt("Website address (include https://):");if(!address)return;try{const u=new URL(address);if(!["http:","https:"].includes(u.protocol))throw 0;addShortcut(name.trim(),u.href,true);}catch(e){alert("Enter a valid website address beginning with https://");}});
  const mobileMenu=$("mobileMenuButton"),menu=$("menuToggle");if(mobileMenu&&menu)mobileMenu.addEventListener("click",()=>menu.click());
 })();
 
