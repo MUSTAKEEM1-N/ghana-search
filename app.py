@@ -283,10 +283,11 @@ def home():
 
         if query:
             results, error = search_web(query, search_type, region, safe, 1)
-            history = session.get("history", [])
-            history = [x for x in history if x.lower() != query.lower()]
-            history.insert(0, query)
-            session["history"] = history[:12]
+            if request.form.get("incognito") != "1":
+                history = session.get("history", [])
+                history = [x for x in history if x.lower() != query.lower()]
+                history.insert(0, query)
+                session["history"] = history[:12]
 
     return render_template(
         "index.html", query=query, search_type=search_type, results=results,
