@@ -2065,7 +2065,8 @@ document.querySelectorAll("[data-aimode]").forEach(tab=>tab.addEventListener("cl
  if(!mainSearch||!searchForm){closeAIMode();return}
  const composer=$("aiModeInput");
  const messages=$("aiModeMessages");
- const lastUserMessage=messages?.querySelector(".ai-mode-message.user:last-of-type");
+ const userMessages=messages?Array.from(messages.querySelectorAll(".ai-mode-message.user")):[];
+ const lastUserMessage=userMessages.length?userMessages[userMessages.length-1]:null;
  const query=(composer?.value||"").trim()||(lastUserMessage?.textContent||"").trim();
  closeAIMode();
  if(!query){mainSearch.focus();return}
