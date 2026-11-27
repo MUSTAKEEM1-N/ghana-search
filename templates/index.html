@@ -299,6 +299,33 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 }
 @media(min-width:651px){.home-mode-actions,.shortcuts-panel,.search-tool{display:none}}
 
+
+/* Google-inspired search landing layout for GHANA SEARCH */
+.home-language-row{display:flex;justify-content:center;align-items:center;gap:22px;flex-wrap:wrap;margin:26px 0 0;color:var(--muted);font-size:14px}
+.home-language-row a{color:#9fc2ff;text-decoration:none}
+.home-language-row a:hover{text-decoration:underline}
+@media(max-width:650px){
+ .home-hero{padding-top:30px;padding-bottom:8px;min-height:0}
+ .logo-word{font-size:clamp(48px,12vw,66px);margin:24px 0 36px;letter-spacing:-2.5px}
+ .tagline,.christmas-greeting{display:none}
+ .home-language-row{gap:17px 22px;margin:25px 0 0;font-size:14px}
+ .home-language-row span{width:100%;text-align:center}
+ .home-mode-actions{margin-top:18px}
+ .shortcuts-panel{display:none}
+ .home-feed{padding:34px 0 34px}
+ .home-feed-head{display:flex;margin:0 0 14px;align-items:center}
+ .home-feed-head h2{font-size:23px;font-weight:500}
+ .home-feed-head p{display:none}
+ .home-feed-grid{display:block}
+ .home-story{display:grid;grid-template-columns:minmax(0,1fr) 76px;align-items:center;gap:12px;padding:13px 0;background:transparent;border:0;border-bottom:1px solid #45494f;border-radius:0}
+ .home-story img,.home-story-placeholder{grid-column:2;grid-row:1;width:76px;height:76px;border-radius:9px}
+ .home-story-body{grid-column:1;grid-row:1;padding:0}
+ .home-story-meta{font-size:12px;text-transform:none;color:#aeb4bd}
+ .home-story h3{font-size:17px;font-weight:500;line-height:1.35;margin:5px 0;color:#e8eaed}
+ .home-story p{display:none}
+ .home-feed-status{padding:20px 0}
+}
+
 </style>
 </head>
 
@@ -416,6 +443,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 <button class="search-tool" type="button" id="visualSearch" aria-label="Search images" title="Search images">▣</button>
 </div>
 <div class="suggestions" id="suggestions"></div>
+<div class="home-language-row"><span>GHANA SEARCH available in:</span> <a href="#" data-lang="English">English</a><a href="#" data-lang="Hausa">Hausa</a><a href="#" data-lang="Akan">Akan</a><a href="#" data-lang="Ewe">Ewe</a><a href="#" data-lang="Ga">Ga</a></div>
 <div class="home-mode-actions">
 <button class="mode-pill" type="button" id="aiModeButton">✦ &nbsp; AI Mode</button>
 <button class="mode-pill" type="button" id="incognitoButton">♙ &nbsp; Incognito</button>
@@ -436,7 +464,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 </section>
 </section>
 <section class="home-feed" id="homeFeed">
-<div class="home-feed-head"><div><h2>Trending around the world</h2><p>Fresh headlines, breaking stories and global updates.</p></div><a href="/discover" style="color:var(--gold);text-decoration:none;font-size:13px">Explore Discover →</a></div>
+<div class="home-feed-head"><div><h2>Trending searches</h2><p>What's happening in Ghana and around the world.</p></div><a href="/discover" style="color:var(--gold);text-decoration:none;font-size:13px">More trends →</a></div>
 <div class="home-feed-grid" id="homeFeedGrid"></div>
 <div class="home-feed-status" id="homeFeedStatus">Loading worldwide trending stories…</div>
 </section>
