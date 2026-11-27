@@ -1582,9 +1582,8 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
 
 
 (()=> {
- const incognito=$("incognitoButton"),value=$("incognitoValue"),search=$("searchInput");
- if(incognito&&value)incognito.addEventListener("click",()=>{const on=value.value!=="1";value.value=on?"1":"0";incognito.classList.toggle("active",on);incognito.textContent=on?"♙  Incognito is on":"♙  Incognito";});
- const ai=$("aiModeButton");if(ai)ai.addEventListener("click",openAIMode);
+ const search=$("searchInput");
+ /* AI Mode and Incognito are bound once by the reliable homepage-controls script below. */
  const plus=$("searchPlus");
  if(plus&&search){
   let picker=document.getElementById("searchToolsPicker");
