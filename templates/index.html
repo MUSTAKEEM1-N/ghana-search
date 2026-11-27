@@ -302,7 +302,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 
 /* Google-inspired search landing layout for GHANA SEARCH */
 .home-language-row{display:flex;justify-content:center;align-items:center;gap:22px;flex-wrap:wrap;margin:26px 0 0;color:var(--muted);font-size:14px}
-.home-language-row a{color:#9fc2ff;text-decoration:none}
+.home-language-row .language-name{color:#9fc2ff}
 .home-language-row a:hover{text-decoration:underline}
 @media(max-width:650px){
  .home-hero{padding-top:30px;padding-bottom:8px;min-height:0}
@@ -443,7 +443,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 <button class="search-tool" type="button" id="visualSearch" aria-label="Search images" title="Search images">▣</button>
 </div>
 <div class="suggestions" id="suggestions"></div>
-<div class="home-language-row"><span>GHANA SEARCH available in:</span> <a href="#" data-lang="English">English</a><a href="#" data-lang="Hausa">Hausa</a><a href="#" data-lang="Akan">Akan</a><a href="#" data-lang="Ewe">Ewe</a><a href="#" data-lang="Ga">Ga</a></div>
+<div class="home-language-row"><span>GHANA SEARCH available in:</span> <span class="language-name">English</span><span class="language-name">Hausa</span><span class="language-name">Akan</span><span class="language-name">Ewe</span><span class="language-name">Ga</span></div>
 <div class="home-mode-actions">
 <button class="mode-pill" type="button" id="aiModeButton">✦ &nbsp; AI Mode</button>
 <button class="mode-pill" type="button" id="incognitoButton">♙ &nbsp; Incognito</button>
