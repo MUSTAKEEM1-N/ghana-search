@@ -245,15 +245,71 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
  .home-feed{padding-top:12px}
 }
 
+
+/* Chrome-inspired mobile start page */
+:root.dark{--bg:#101418;--surface:#1c2228;--surface2:#263943;--text:#f1f3f4;--muted:#bdc1c6;--line:#30363d}
+@media(max-width:650px){
+ body{background:#101418;color:#f1f3f4}
+ .topbar{height:54px;min-height:54px;padding:0 18px}
+ .brand{opacity:0}.top-actions{margin-left:auto}
+ .home-hero{min-height:0;height:auto;padding:42px 0 18px;justify-content:flex-start}
+ .logo-word{font-size:clamp(48px,13vw,68px);letter-spacing:-3px;margin:18px 0 42px;color:#f1f3f4}
+ .logo-word span{background:none;color:#f1f3f4}
+ .tagline,.christmas-greeting{display:none}
+ .search-form{width:100%}
+ .search-shell{height:72px;border:0;border-radius:42px;background:#243b46;padding:0 16px;gap:10px;box-shadow:none}
+ .search-shell:hover,.search-shell:focus-within{border:0;box-shadow:none}
+ .search-symbol{display:none}
+ .search-shell input{color:#f1f3f4;font-size:17px;font-weight:600;padding:0 3px}
+ .search-shell input::placeholder{color:#e3e7e9;opacity:1}
+ .search-tool{flex:0 0 38px;width:38px;height:42px;border:0;background:transparent;color:#e8eaed;font-size:25px;cursor:pointer}
+ .clear-btn{color:#e8eaed}
+ .suggestions{top:76px;background:#24343c;border:0;border-radius:0 0 24px 24px}
+ .suggestions button{color:#f1f3f4}
+ .home-mode-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+ .mode-pill{height:58px;border:0;border-radius:34px;background:#243b46;color:#e8eaed;font-size:16px;font-weight:700;cursor:pointer}
+ .mode-pill.active{outline:2px solid #8ab4f8;background:#304c58}
+ .home-extra-actions{display:none}
+ .shortcuts-panel{margin-top:28px;padding:20px 12px;background:#1b2228;border-radius:34px;width:100%;overflow:hidden}
+ .shortcuts-row{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;padding:0 4px}
+ .shortcuts-row::-webkit-scrollbar{display:none}
+ .shortcut{flex:0 0 88px;display:flex;flex-direction:column;align-items:center;gap:10px;color:#e8eaed;text-decoration:none;font-size:13px;white-space:nowrap;overflow:hidden;border:0;background:transparent;padding:0;cursor:pointer}
+ .shortcut-icon{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:#242c33;color:#8ab4f8;font-size:28px;font-weight:700}
+ .shortcut span:last-child{max-width:88px;overflow:hidden;text-overflow:ellipsis}
+ .add-shortcut .shortcut-icon{font-size:32px;color:#e8eaed}
+ .home-feed{padding:16px 0 30px;margin:0}
+ .home-feed-head{display:none}.home-feed-grid{grid-template-columns:1fr;gap:14px}
+ .home-story{background:#1b2228;border:0;border-radius:0;overflow:hidden}
+ .home-story img,.home-story-placeholder{height:205px;border-radius:0}
+ .home-story-body{padding:15px 16px 20px}
+ .home-story h3{font-size:18px;line-height:1.4;color:#e8eaed}
+ .home-story p{font-size:14px;color:#bdc1c6}
+ .home-story-meta{color:#aab4bc}.home-feed-status{color:#bdc1c6}
+ .browser-tabs{position:fixed;z-index:55;bottom:0;left:0;right:0;height:64px;padding:0 24px;background:#222a30;border:0;justify-content:space-between}
+ .browser-tab-list{display:none}
+ .new-browser-tab{order:2;margin:0;width:42px;height:42px;border:0;background:transparent;color:#e8eaed;font-size:34px}
+ .mobile-tab-count{order:3;width:40px;height:40px;border:0;background:transparent;color:#e8eaed;font-size:17px}
+ .mobile-tab-grid.open{position:fixed;top:auto;bottom:74px;left:10px;right:10px;background:#1c2228;border-color:#39434b}
+ .mobile-tab-card{background:#263943;color:#f1f3f4}.mobile-tab-card small{color:#bdc1c6}
+ .mobile-home-link{order:1;color:#e8eaed;text-decoration:none;font-size:25px}
+ .mobile-menu-button{order:4;border:0;background:transparent;color:#e8eaed;font-size:25px}
+ main{width:100%;padding:0 16px 78px}
+ .history{display:none}footer{display:none}
+ .search-loading{top:60px}
+}
+@media(min-width:651px){.home-mode-actions,.shortcuts-panel,.search-tool{display:none}}
+
 </style>
 </head>
 
 <body>
 
 <div class="browser-tabs" id="browserTabs">
+<a class="mobile-home-link" href="/" aria-label="Home">⌂</a>
 <div class="browser-tab-list" id="browserTabList"></div>
 <button class="mobile-tab-count" id="mobileTabCount" type="button" aria-label="Show tabs">1</button>
 <button class="new-browser-tab" id="newBrowserTab" type="button" title="New tab">+</button>
+<button class="mobile-menu-button" type="button" id="mobileMenuButton" aria-label="Open menu">⋮</button>
 </div>
 <div class="mobile-tab-grid" id="mobileTabGrid"></div>
 
@@ -350,25 +406,34 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 <input type="hidden" name="search_type" value="all">
 <input type="hidden" name="region" class="region-value" value="{{ region }}">
 <input type="hidden" name="safe" class="safe-value" value="{{ safe }}">
+<input type="hidden" name="incognito" id="incognitoValue" value="0">
 
 <div class="search-shell">
+<button class="search-tool" type="button" id="searchPlus" aria-label="Search tools">＋</button>
 <span class="search-symbol">⌕</span>
-<input id="searchInput" name="search" type="search" placeholder="Search anything around the world…" required autofocus>
-<button class="clear-btn" type="button" id="clearInput" aria-label="Clear search">×</button>
+<input id="searchInput" name="search" type="search" placeholder="Search GHANA SEARCH or type…" required autofocus>
+<button class="search-tool" type="button" id="voiceSearch" aria-label="Voice search" title="Voice search">🎙</button>
+<button class="search-tool" type="button" id="visualSearch" aria-label="Search images" title="Search images">▣</button>
 </div>
-
 <div class="suggestions" id="suggestions"></div>
-
-<div class="search-actions">
-<button class="primary-btn" type="submit">GHANA SEARCH</button>
+<div class="home-mode-actions">
+<button class="mode-pill" type="button" id="aiModeButton">✦ &nbsp; AI Mode</button>
+<button class="mode-pill" type="button" id="incognitoButton">♙ &nbsp; Incognito</button>
+</div>
+<div class="search-actions home-extra-actions">
+<button class="primary-btn" type="submit">Search</button>
 <button class="secondary-btn" type="button" id="luckyBtn">I'm Feeling Curious</button>
 </div>
 </form>
-
-<div class="search-actions">
-<a class="secondary-btn" href="/discover" style="text-decoration:none">Explore Discover</a>
-<a class="secondary-btn" href="/support" style="text-decoration:none">Support the Creator</a>
+<section class="shortcuts-panel" aria-label="Website shortcuts">
+<div class="shortcuts-row" id="shortcutList">
+<a class="shortcut" href="https://www.youtube.com/" target="_blank" rel="noopener"><span class="shortcut-icon">▶</span><span>YouTube</span></a>
+<a class="shortcut" href="https://www.google.com/" target="_blank" rel="noopener"><span class="shortcut-icon">G</span><span>Google</span></a>
+<a class="shortcut" href="https://www.whatsapp.com/" target="_blank" rel="noopener"><span class="shortcut-icon">◉</span><span>WhatsApp</span></a>
+<a class="shortcut" href="https://www.facebook.com/" target="_blank" rel="noopener"><span class="shortcut-icon">f</span><span>Facebook</span></a>
+<button class="shortcut add-shortcut" type="button" id="addShortcut"><span class="shortcut-icon">＋</span><span>Add shortcut</span></button>
 </div>
+</section>
 </section>
 <section class="home-feed" id="homeFeed">
 <div class="home-feed-head"><div><h2>Trending around the world</h2><p>Fresh headlines, breaking stories and global updates.</p></div><a href="/discover" style="color:var(--gold);text-decoration:none;font-size:13px">Explore Discover →</a></div>
@@ -1104,6 +1169,17 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
         button.textContent="Continue to secure Paystack payment";
     }
 });
+
+
+(()=> {
+ const incognito=$("incognitoButton"),value=$("incognitoValue"),search=$("searchInput");
+ if(incognito&&value)incognito.addEventListener("click",()=>{const on=value.value!=="1";value.value=on?"1":"0";incognito.classList.toggle("active",on);incognito.textContent=on?"♙  Incognito is on":"♙  Incognito";});
+ const ai=$("aiModeButton");if(ai&&search)ai.addEventListener("click",()=>{search.placeholder="Ask GHANA SEARCH AI anything…";search.focus();ai.classList.add("active");});
+ const voice=$("voiceSearch");if(voice&&search)voice.addEventListener("click",()=>{const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S){alert("Voice search is not supported by this browser.");return;}const rec=new S();rec.lang="en-GH";rec.interimResults=false;voice.textContent="…";rec.onresult=e=>{search.value=e.results[0][0].transcript;search.form.requestSubmit();};rec.onerror=()=>voice.textContent="🎙";rec.onend=()=>voice.textContent="🎙";rec.start();});
+ const visual=$("visualSearch");if(visual&&search)visual.addEventListener("click",()=>{const type=search.form.querySelector('[name="search_type"]');if(type)type.value="images";search.placeholder="Search for images…";search.focus();});
+ const add=$("addShortcut"),list=$("shortcutList");if(add&&list)add.addEventListener("click",()=>{const name=prompt("Website name:");if(!name)return;const address=prompt("Website address (include https://):");if(!address)return;try{const u=new URL(address);if(!["http:","https:"].includes(u.protocol))throw 0;const a=document.createElement("a");a.className="shortcut";a.href=u.href;a.target="_blank";a.rel="noopener";const i=document.createElement("span");i.className="shortcut-icon";i.textContent=name.trim().slice(0,1).toUpperCase();const label=document.createElement("span");label.textContent=name.trim();a.append(i,label);list.insertBefore(a,add);}catch(e){alert("Enter a valid website address beginning with https://");}});
+ const mobileMenu=$("mobileMenuButton"),menu=$("menuToggle");if(mobileMenu&&menu)mobileMenu.addEventListener("click",()=>menu.click());
+})();
 
 async function loadHomeFeed(){
  const grid=$("homeFeedGrid"),status=$("homeFeedStatus");if(!grid||!status)return;
