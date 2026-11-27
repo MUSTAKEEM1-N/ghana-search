@@ -1597,15 +1597,16 @@ window.addEventListener("load",()=>{
 <script>
 (()=>{
  const dict={
- en:{prompt:"GHANA SEARCH available in:",search:"Search GHANA SEARCH or type…",ai:"✦  AI Mode",incog:"♙  Incognito",trend:"Trending searches",more:"More trends →",settings:"Search settings",discover:"Discover"},
- ha:{prompt:"GHANA SEARCH yana samuwa a:",search:"Nemo a GHANA SEARCH…",ai:"✦  Yanayin AI",incog:"♙  Bincike na sirri",trend:"Abubuwan da ake nema",more:"Duba ƙari →",settings:"Saitunan bincike",discover:"Bincike"},
- ak:{prompt:"GHANA SEARCH wɔ kasa yi mu:",search:"Hwehwɛ wɔ GHANA SEARCH…",ai:"✦  AI tebea",incog:"♙  Ahintasɛm",trend:"Nneɛma a wɔrehwehwɛ",more:"Hwɛ pii →",settings:"Nhwehwɛmu nhyehyɛe",discover:"Hwehwɛ"},
- ee:{prompt:"GHANA SEARCH le gbe siawo me:",search:"Di gbe le GHANA SEARCH…",ai:"✦  AI ƒe nɔnɔme",incog:"♙  Nyatakakadzra",trend:"Nyatakaka siwo wodi",more:"Kpɔ bubu →",settings:"Didiɖo ƒe ɖoɖowo",discover:"Didiɖo"},
- gaa:{prompt:"GHANA SEARCH wɔ kasa ni:",search:"Kɛɛ GHANA SEARCH…",ai:"✦  AI niŋ",incog:"♙  Shikaŋ",trend:"Nii amɛ tsɔɔ",more:"Kɛɛ pii →",settings:"Search settings",discover:"Kɛɛ"}
+ en:{prompt:"GHANA SEARCH available in:",search:"Search GHANA SEARCH or type…",ai:"✦  AI Mode",incog:"♙  Incognito",trend:"Trending searches",more:"More trends →",settings:"Search settings",region:"Search region",safe:"SafeSearch",appearance:"Appearance",save:"Save settings",close:"Close"},
+ ha:{prompt:"GHANA SEARCH yana samuwa a:",search:"Nemo a GHANA SEARCH…",ai:"✦  Yanayin AI",incog:"♙  Bincike na sirri",trend:"Abubuwan da ake nema",more:"Duba ƙari →",settings:"Saitunan bincike",region:"Yankin bincike",safe:"Bincike mai aminci",appearance:"Bayyanar",save:"Ajiye saituna",close:"Rufe"},
+ ak:{prompt:"GHANA SEARCH wɔ kasa yi mu:",search:"Hwehwɛ wɔ GHANA SEARCH…",ai:"✦  AI tebea",incog:"♙  Ahintasɛm",trend:"Nneɛma a wɔrehwehwɛ",more:"Hwɛ pii →",settings:"Nhwehwɛmu nhyehyɛe",region:"Nhwehwɛmu mantam",safe:"Nhwehwɛmu a ahobammɔ wom",appearance:"Ɛkwan a ɛda adi",save:"Sie nhyehyɛe",close:"To mu"},
+ ee:{prompt:"GHANA SEARCH le gbe siawo me:",search:"Di gbe le GHANA SEARCH…",ai:"✦  AI ƒe nɔnɔme",incog:"♙  Nyatakakadzra",trend:"Nyatakaka siwo wodi",more:"Kpɔ bubu →",settings:"Didiɖo ƒe ɖoɖowo",region:"Didiɖo ƒe nutome",safe:"Didiɖo si le dedie",appearance:"Nɔnɔme",save:"Dzra ɖoɖowo",close:"Tu"},
+ gaa:{prompt:"GHANA SEARCH wɔ kasa ni:",search:"Kɛɛ GHANA SEARCH…",ai:"✦  AI niŋ",incog:"♙  Shikaŋ",trend:"Nii amɛ tsɔɔ",more:"Kɛɛ pii →",settings:"Search settings",region:"Search region",safe:"SafeSearch",appearance:"Appearance",save:"Save settings",close:"Close"}
  };
  function applyLanguage(code){
   const d=dict[code]||dict.en;
   const prompt=document.getElementById("languagePrompt"),search=document.getElementById("searchInput"),ai=document.getElementById("aiModeButton"),inc=document.getElementById("incognitoButton"),trend=document.querySelector(".home-feed-head h2"),more=document.querySelector(".home-feed-head a"),settings=document.getElementById("mobileOpenSettings");
+  const labels=document.querySelectorAll(".settings-card .setting-row label"),save=document.getElementById("saveSettings"),close=document.getElementById("closeSettings"),title=document.getElementById("settingsTitle");
   if(prompt)prompt.textContent=d.prompt;
   if(search)search.placeholder=d.search;
   if(ai)ai.textContent=d.ai;
@@ -1613,6 +1614,8 @@ window.addEventListener("load",()=>{
   if(trend)trend.textContent=d.trend;
   if(more)more.textContent=d.more;
   if(settings)settings.textContent="⚙ "+d.settings;
+  if(labels[0])labels[0].textContent=d.region;if(labels[1])labels[1].textContent=d.safe;if(labels[2])labels[2].textContent=d.appearance;
+  if(save)save.textContent=d.save;if(close)close.setAttribute("aria-label",d.close);if(title)title.textContent=d.settings;
   document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===code));
   try{localStorage.setItem("gs-language",code)}catch(e){}
  }
