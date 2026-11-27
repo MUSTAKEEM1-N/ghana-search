@@ -665,7 +665,32 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
  .home-feed-status{font-size:17px!important}
 }
 
-</style>
+
+/* Mobile size correction: compact layout without changing desktop styling. */
+@media(max-width:650px){
+ .topbar{top:12px!important;right:16px!important}
+ #themeToggle{width:44px!important;height:44px!important;font-size:21px!important;border-bottom-width:2px!important}
+ .christmas-banner{min-height:58px!important;padding:9px 14px!important;font-size:13px!important;letter-spacing:1px!important}
+ .home-hero{padding:34px 0 16px!important}
+ .logo-word{font-size:clamp(30px,8vw,43px)!important;margin:0 0 14px!important}
+ .search-shell{height:64px!important;padding:0 13px!important;gap:8px!important;border-radius:36px!important}
+ .search-tool{flex-basis:34px!important;width:34px!important;height:42px!important;font-size:23px!important}
+ .search-tool#voiceSearch{font-size:25px!important}
+ .search-tool#visualSearch{font-size:22px!important}
+ .home-language-row{gap:7px 14px!important;margin:15px auto 0!important;font-size:14px!important}
+ .home-language-row #languagePrompt{font-size:14px!important;margin-bottom:2px!important}
+ .home-mode-actions{gap:10px!important;margin:16px 0 0!important}
+ .home-mode-actions .mode-pill{height:62px!important;border-radius:34px!important;font-size:15px!important}
+ .home-mode-actions .mode-pill.active{outline-width:2px!important}
+ .home-feed{padding:28px 0 56px!important}
+ .home-feed-head{margin-bottom:12px!important}
+ .home-feed-head h2{font-size:21px!important}
+ .home-feed-head a{font-size:14px!important}
+ .home-story{grid-template-columns:minmax(0,1fr) 76px!important;gap:11px!important;padding:12px 0!important}
+ .home-story img,.home-story-placeholder{width:76px!important;height:76px!important;border-radius:12px!important}
+ .home-story-meta{font-size:12px!important}
+ .home-story h3{font-size:16px!important;line-height:1.3!important;margin:6px 0!important}
+}\n</style>
 </head>
 
 <body>
@@ -2033,10 +2058,22 @@ const addAIMode=$("aiModeAdd");
 if(addAIMode)addAIMode.addEventListener("click",()=>{$("aiModeInput").focus()});
 document.querySelectorAll("[data-aimode]").forEach(tab=>tab.addEventListener("click",()=>{
  const mode=tab.dataset.aimode;
- if(mode==="ai"){document.querySelectorAll("[data-aimode]").forEach(x=>x.classList.toggle("selected",x===tab));return}
- closeAIMode();
+ document.querySelectorAll("[data-aimode]").forEach(x=>x.classList.toggle("selected",x===tab));
+ if(mode==="ai")return;
  const mainSearch=$("searchInput");
- if(mainSearch){const type=mainSearch.form?.querySelector('[name="search_type"]');if(type)type.value=mode==="all"?"all":mode;mainSearch.focus()}
+ const searchForm=mainSearch?.form;
+ if(!mainSearch||!searchForm){closeAIMode();return}
+ const composer=$("aiModeInput");
+ const messages=$("aiModeMessages");
+ const lastUserMessage=messages?.querySelector(".ai-mode-message.user:last-of-type");
+ const query=(composer?.value||"").trim()||(lastUserMessage?.textContent||"").trim();
+ closeAIMode();
+ if(!query){mainSearch.focus();return}
+ mainSearch.value=query;
+ const type=searchForm.querySelector('[name="search_type"]');
+ if(type)type.value=mode==="all"?"all":mode;
+ if(typeof searchForm.requestSubmit==="function")searchForm.requestSubmit();
+ else searchForm.submit();
 }));
 
 </script>
