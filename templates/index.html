@@ -758,6 +758,7 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
 <div class="home-feed-head"><div><h2>Trending searches</h2><p>What's happening in Ghana and around the world.</p></div><a href="/discover" style="color:var(--gold);text-decoration:none;font-size:13px">More trends →</a></div>
 <div class="home-feed-grid" id="homeFeedGrid"></div>
 <div class="home-feed-status" id="homeFeedStatus">Loading worldwide trending stories…</div>
+<button type="button" class="secondary-btn" id="homeFeedMore" style="display:none;width:100%;margin-top:14px">Load more stories</button>
 </section>
 {% else %}
 <section class="results-top">
@@ -1546,38 +1547,27 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
 })();
 
 async function loadHomeFeed(){
- const grid=$("homeFeedGrid"),status=$("homeFeedStatus");if(!grid||!status)return;
+ const grid=$("homeFeedGrid"),status=$("homeFeedStatus"),more=$("homeFeedMore");if(!grid||!status)return;
  let page=1,loading=false,finished=false;const seen=new Set();
  function add(item){
-  if(!item||!item.title||!item.url||seen.has(item.url))return;seen.add(item.url);
+  if(!item||!item.title||!item.url||seen.has(item.url))return false;seen.add(item.url);
   const a=document.createElement("a");a.className="home-story";a.href=item.url;a.target="_blank";a.rel="noopener noreferrer";
-  if(item.image){const img=document.createElement("img");img.src=item.image;img.alt=item.title;img.loading="lazy";img.referrerPolicy="no-referrer";img.onerror=()=>{const f=document.createElement("div");f.className="home-story-placeholder";f.textContent="GHANA SEARCH";img.replaceWith(f)};a.appendChild(img)}
-  else{const f=document.createElement("div");f.className="home-story-placeholder";f.textContent="GHANA SEARCH";a.appendChild(f)}
-  const b=document.createElement("div");b.className="home-story-body";
-  const m=document.createElement("div");m.className="home-story-meta";m.textContent=(item.topic||"World")+" · "+(item.source||"Trending");
-  const t=document.createElement("h3");t.textContent=item.title;const d=document.createElement("p");d.textContent=item.description||"Open this story to read the latest report.";
-  b.append(m,t,d);a.appendChild(b);grid.appendChild(a);
+  if(item.image){const img=document.createElement("img");img.src=item.image;img.alt=item.title;img.loading="lazy";img.referrerPolicy="no-referrer";img.onerror=()=>{const f=document.createElement("div");f.className="home-story-placeholder";f.textContent="GHANA SEARCH";img.replaceWith(f)};a.appendChild(img)}else{const f=document.createElement("div");f.className="home-story-placeholder";f.textContent="GHANA SEARCH";a.appendChild(f)}
+  const b=document.createElement("div");b.className="home-story-body";const m=document.createElement("div");m.className="home-story-meta";m.textContent=(item.topic||"World")+" · "+(item.source||"Trending");
+  const h=document.createElement("h3");h.textContent=item.title;const d=document.createElement("p");d.textContent=item.description||"Open this story to read the latest report.";b.append(m,h,d);a.appendChild(b);grid.appendChild(a);return true;
  }
  async function next(){
-  if(loading||finished)return;loading=true;
-  status.textContent=page===1?"Loading worldwide trending stories…":"Loading more stories…";
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),14000);
-  try{
-   const response=await fetch("/api/discover?page="+page+"&region=worldwide",{signal:controller.signal,cache:"no-store"});
-   if(!response.ok)throw new Error("News service returned "+response.status);
-   const data=await response.json();const items=Array.isArray(data.items)?data.items:[];const before=seen.size;items.forEach(add);
-   if(!items.length){finished=true;status.textContent=page===1?(data.message||"Trending stories are temporarily unavailable. Tap here to retry."):"You’re all caught up."}
-   else{page++;status.textContent=seen.size===before?"You’re all caught up.":"Scroll down for more stories."}
-  }catch(e){
-   finished=true;
-   status.textContent=e.name==="AbortError"?"The news feed is taking too long. Tap here to retry.":"News is temporarily unavailable. Tap here to retry.";
-  }finally{clearTimeout(timeout);loading=false}
+  if(loading||finished)return;loading=true;if(more){more.disabled=true;more.textContent="Loading…";more.style.display="block"}
+  status.textContent=page===1?"Loading worldwide trending stories…":"Loading more stories…";const requestedPage=page;const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),16000);
+  try{const response=await fetch("/api/discover?page="+requestedPage+"&region=worldwide",{signal:controller.signal,cache:"no-store"});if(!response.ok)throw new Error("News service returned "+response.status);const data=await response.json();const items=Array.isArray(data.items)?data.items:[];let added=0;items.forEach(item=>{if(add(item))added++});
+   if(!items.length){finished=true;status.textContent=requestedPage===1?(data.message||"Trending stories are temporarily unavailable."):"You are all caught up."}
+   else if(!added){finished=true;status.textContent="No newer stories are available right now. Please check again later."}
+   else{page=requestedPage+1;status.textContent="Showing "+seen.size+" stories."}
+  }catch(error){status.textContent=error.name==="AbortError"?"The news feed took too long. Tap Load more to retry.":"News is temporarily unavailable. Tap Load more to retry."}
+  finally{clearTimeout(timeout);loading=false;if(more){more.disabled=false;more.textContent="Load more stories";more.style.display=finished?"none":"block"}}
  }
- status.style.cursor="pointer";
- status.addEventListener("click",()=>{if(finished){finished=false;page=1;next()}});
- await next();
- if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>{if(entries.some(x=>x.isIntersecting)&&!loading&&!finished)next()},{rootMargin:"500px"});observer.observe(status)}
+ if(more)more.addEventListener("click",next);await next();
+ if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)&&!loading&&!finished)next()},{rootMargin:"250px"});observer.observe(status)}
 }
 loadHomeFeed();
 
@@ -1881,10 +1871,14 @@ window.addEventListener("load",()=>{
  };
  function applyLanguage(code){
   const d=dict[code]||dict.en;
-  const prompt=document.getElementById("languagePrompt"),search=document.getElementById("searchInput"),ai=document.getElementById("aiModeButton"),inc=document.getElementById("incognitoButton"),trend=document.querySelector(".home-feed-head h2"),more=document.querySelector(".home-feed-head a"),settings=document.getElementById("mobileOpenSettings");
+  const prompt=document.getElementById("languagePrompt"),search=document.getElementById("searchInput"),ai=document.getElementById("aiModeButton"),inc=document.getElementById("incognitoButton"),trend=document.querySelector(".home-feed-head h2"),more=document.querySelector(".home-feed-head a"),settings=document.getElementById("mobileOpenSettings"),submit=document.querySelector(".home-extra-actions .primary-btn"),lucky=document.getElementById("luckyBtn"),discover=document.querySelector(".home-extra-actions a[href=\"/discover\"]"),support=document.querySelector(".home-extra-actions a[href=\"/support\"]");
   const labels=document.querySelectorAll(".settings-card .setting-row label"),save=document.getElementById("saveSettings"),close=document.getElementById("closeSettings"),title=document.getElementById("settingsTitle");
   if(prompt)prompt.textContent=d.prompt;
   if(search)search.placeholder=d.search;
+  if(submit)submit.textContent=({en:"GHANA SEARCH",ha:"NEMA",ak:"HWEHWƐ",ee:"DI GBE",gaa:"KƐƐ"})[code]||"GHANA SEARCH";
+  if(lucky)lucky.textContent=({en:"I\u0027m Feeling Curious",ha:"Ina son sani",ak:"Mepɛ sɛ mehu",ee:"Medi dzesi",gaa:"Miisɛŋ"})[code]||"I\u0027m Feeling Curious";
+  if(discover)discover.textContent=({en:"Explore Discover",ha:"Duba labarai",ak:"Hwehwɛ nsɛm",ee:"Kpɔ nyatakaka",gaa:"Kɛɛ nii"})[code]||"Explore Discover";
+  if(support)support.textContent=({en:"Support the Creator",ha:"Tallafa wa mahalicci",ak:"Boa ɔbɔfo no",ee:"Kpe ɖe wòwɔla ŋu",gaa:"Kpe creator"})[code]||"Support the Creator";
   if(ai)ai.textContent=d.ai;
   if(inc&&!inc.classList.contains("active"))inc.textContent=d.incog;
   if(trend)trend.textContent=d.trend;
