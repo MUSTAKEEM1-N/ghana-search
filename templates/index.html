@@ -551,6 +551,24 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
  body.christmas-mode .christmas-greeting{color:#e0d8c8}
 }
 
+
+/* Keep the mobile light/dark switch effective with the seasonal palette */
+@media(max-width:650px){
+ :root:not(.dark) body.christmas-mode{background:#fffaf2!important;color:#20231f!important}
+ :root:not(.dark) body.christmas-mode .topbar{background:#fffaf2!important}
+ :root:not(.dark) body.christmas-mode #themeToggle{background:#f5eee5;border-color:#e6d9c9;color:#20231f}
+ :root:not(.dark) body.christmas-mode .search-shell{background:#fff;border:1px solid #e6d9c9}
+ :root:not(.dark) body.christmas-mode .search-shell input{color:#20231f}
+ :root:not(.dark) body.christmas-mode .search-shell input::placeholder{color:#687168}
+ :root:not(.dark) body.christmas-mode .home-mode-actions .mode-pill{background:#f5eee5;color:#20231f;border:1px solid #e6d9c9}
+ :root:not(.dark) body.christmas-mode .shortcuts-panel{background:#f5eee5}
+ :root:not(.dark) body.christmas-mode .shortcut{color:#20231f}
+ :root:not(.dark) body.christmas-mode .shortcut-icon{background:#e8f1e8;color:#21834a}
+ :root:not(.dark) body.christmas-mode .home-story h3{color:#20231f}
+ :root:not(.dark) body.christmas-mode .home-story{border-bottom-color:#e6d9c9}
+ :root:not(.dark) body.christmas-mode .christmas-greeting{color:#687168}
+}
+
 </style>
 </head>
 
