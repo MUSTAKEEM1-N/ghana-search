@@ -123,6 +123,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:25px 12px;bor
 .search-loading.show{display:block}
 .spinner{width:27px;height:27px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 9px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.home-feed{padding:28px 0 45px}.home-feed-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:16px}.home-feed-head h2{margin:0;font-size:25px}.home-feed-head p{margin:4px 0 0;color:var(--muted);font-size:13px}.home-feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}.home-story{display:block;overflow:hidden;border:1px solid var(--line);border-radius:15px;background:var(--surface);text-decoration:none;min-width:0}.home-story img,.home-story-placeholder{display:block;width:100%;height:180px;object-fit:cover;background:var(--surface2)}.home-story-placeholder{display:grid;place-items:center;background:linear-gradient(135deg,var(--surface2),var(--line));color:var(--gold);font-weight:800;letter-spacing:2px}.home-story-body{padding:13px}.home-story-meta{font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase}.home-story h3{font-size:17px;line-height:1.35;margin:6px 0}.home-story p{font-size:13px;color:var(--muted);margin:6px 0 0}.home-feed-status{text-align:center;padding:18px;color:var(--muted);font-size:13px}@media(max-width:650px){.home-feed{padding-top:10px}.home-feed-head h2{font-size:21px}.home-feed-grid{grid-template-columns:1fr}.home-story img,.home-story-placeholder{height:190px}}
 .discover-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:20px 0}
 .discover-filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.discover-filter{border:1px solid var(--line);border-radius:22px;padding:8px 14px;background:var(--surface);color:var(--text);cursor:pointer}.discover-filter.active{background:var(--gold);border-color:var(--gold);color:#171717;font-weight:700}.suggestions button[aria-selected=true]{background:var(--surface2);outline:2px solid var(--gold);outline-offset:-2px}
 .discover-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);text-decoration:none;display:block}
@@ -292,9 +293,12 @@ main{width:min(100% - 24px,1050px)}
 <a class="secondary-btn" href="/support" style="text-decoration:none">Support the Creator</a>
 </div>
 </section>
-
+<section class="home-feed" id="homeFeed">
+<div class="home-feed-head"><div><h2>Trending around the world</h2><p>Fresh headlines, breaking stories and global updates.</p></div><a href="/discover" style="color:var(--gold);text-decoration:none;font-size:13px">Explore Discover →</a></div>
+<div class="home-feed-grid" id="homeFeedGrid"></div>
+<div class="home-feed-status" id="homeFeedStatus">Loading worldwide trending stories…</div>
+</section>
 {% else %}
-
 <section class="results-top">
 
 <form class="search-form compact-search" method="post" action="/" autocomplete="off">
@@ -1023,6 +1027,30 @@ if(supportForm)supportForm.addEventListener("submit",async e=>{
         button.textContent="Continue to secure Paystack payment";
     }
 });
+
+async function loadHomeFeed(){
+ const grid=$("homeFeedGrid"),status=$("homeFeedStatus");if(!grid||!status)return;
+ let page=1,loading=false,finished=false;const seen=new Set();
+ function add(item){
+  if(!item||!item.title||!item.url||seen.has(item.url))return;seen.add(item.url);
+  const a=document.createElement("a");a.className="home-story";a.href=item.url;a.target="_blank";a.rel="noopener noreferrer";
+  if(item.image){const img=document.createElement("img");img.src=item.image;img.alt=item.title;img.loading="lazy";img.referrerPolicy="no-referrer";img.onerror=()=>{const f=document.createElement("div");f.className="home-story-placeholder";f.textContent="GHANA SEARCH";img.replaceWith(f)};a.appendChild(img)}
+  else{const f=document.createElement("div");f.className="home-story-placeholder";f.textContent="GHANA SEARCH";a.appendChild(f)}
+  const b=document.createElement("div");b.className="home-story-body";
+  const m=document.createElement("div");m.className="home-story-meta";m.textContent=(item.topic||"World")+" · "+(item.source||"Trending");
+  const t=document.createElement("h3");t.textContent=item.title;const d=document.createElement("p");d.textContent=item.description||"Open this story to read the latest report.";
+  b.append(m,t,d);a.appendChild(b);grid.appendChild(a);
+ }
+ async function next(){
+  if(loading||finished)return;loading=true;status.textContent=page===1?"Loading worldwide trending stories…":"Loading more stories…";
+  try{const r=await fetch("/api/discover?page="+page+"&region=worldwide");const data=await r.json();const items=data.items||[];const before=seen.size;items.forEach(add);
+   if(!items.length){finished=true;status.textContent=page===1?(data.message||"Trending stories are temporarily unavailable."):"You’re all caught up."}
+   else{page++;status.textContent=seen.size===before?"You’re all caught up.":"Scroll down for more stories."}
+  }catch(e){status.textContent="Could not load the news feed. Please refresh and try again."}finally{loading=false}
+ }
+ await next();if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>{if(entries.some(x=>x.isIntersecting)&&!loading&&!finished)next()},{rootMargin:"500px"});observer.observe(status)}
+}
+loadHomeFeed();
 
 async function loadDiscover(){
     const grid=$("discoverGrid");
