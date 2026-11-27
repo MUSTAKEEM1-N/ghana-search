@@ -500,6 +500,57 @@ body.ai-mode-open{overflow:hidden}
 }
 @media(min-width:651px){.home-link-btn{display:inline-flex;align-items:center;text-decoration:none}}
 
+
+/* GHANA SEARCH Christmas palette — visual-only, preserves layout and functionality */
+:root{--gold:#c99b36;--gold2:#e4c77b}
+:root:not(.dark) body.christmas-mode{
+ --bg:#fffaf2;--surface:#fff;--surface2:#f5eee5;--text:#20231f;
+ --muted:#687168;--line:#e6d9c9;--gold:#a77a20;--gold2:#d9b85f;
+ --shadow:0 8px 28px rgba(74,35,25,.10)
+}
+:root.dark body.christmas-mode{
+ --bg:#101713;--surface:#18231d;--surface2:#202c25;--text:#f4f2eb;
+ --muted:#b8c1b8;--line:#35443a;--gold:#e0bd63;--gold2:#f0d98d;
+ --shadow:0 8px 28px rgba(0,0,0,.32)
+}
+body.christmas-mode .topbar{border-bottom:2px solid #a52b35;box-shadow:0 3px 16px rgba(165,43,53,.12)}
+body.christmas-mode .brand-mark{border-color:#a52b35;color:#a52b35}
+body.christmas-mode .logo-word span{background:linear-gradient(100deg,#b52e38 5%,#c99b36 48%,#21834a 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+body.christmas-mode .christmas-banner{background:linear-gradient(100deg,#701d27,#a52b35,#701d27)}
+body.christmas-mode .search-shell{border-color:rgba(201,155,54,.42)}
+body.christmas-mode .search-shell:focus-within{border-color:#c99b36;box-shadow:0 0 0 3px rgba(201,155,54,.14)}
+body.christmas-mode .primary-btn{background:#a52b35;border-color:#a52b35;color:#fff}
+body.christmas-mode .primary-btn:hover{background:#8d222d;border-color:#8d222d}
+body.christmas-mode .secondary-btn,body.christmas-mode .mode-pill{border-color:var(--line);background:var(--surface2);color:var(--text)}
+body.christmas-mode .mode-pill.active{outline:2px solid #c99b36;background:rgba(33,131,74,.15)}
+body.christmas-mode .language-name{color:#21834a}
+:root.dark body.christmas-mode .language-name{color:#9ed3ad}
+body.christmas-mode .shortcut-icon{background:rgba(33,131,74,.12);color:#21834a}
+:root.dark body.christmas-mode .shortcut-icon{color:#9ed3ad}
+body.christmas-mode .home-feed-head a,body.christmas-mode .footer-links a{color:#21834a!important}
+:root.dark body.christmas-mode .home-feed-head a,:root.dark body.christmas-mode .footer-links a{color:#9ed3ad!important}
+body.christmas-mode .tab.active{color:#21834a;border-color:#21834a}
+:root.dark body.christmas-mode .tab.active{color:#9ed3ad;border-color:#9ed3ad}
+body.christmas-mode .ai-mode-screen{background:#101713;color:#f4f2eb}
+body.christmas-mode .ai-mode-top{background:#18231d;border-color:#35443a}
+body.christmas-mode .ai-mode-send{background:#c99b36;color:#171717}
+body.christmas-mode .ai-mode-tabs button.selected{color:#e0bd63;border-color:#c99b36}
+body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
+@media(max-width:650px){
+ body.christmas-mode{background:#101713!important;color:#f4f2eb!important}
+ body.christmas-mode .browser-tabs{background:#202923!important;border-color:#3b493e}
+ body.christmas-mode .topbar{background:#101713!important;border-bottom:3px solid #a52b35!important}
+ body.christmas-mode #themeToggle{background:#202c25;border-color:#3b493e;color:#f4f2eb}
+ body.christmas-mode .search-shell{background:#1b2921;border:1px solid #3b493e}
+ body.christmas-mode .search-shell input{color:#f4f2eb}
+ body.christmas-mode .home-mode-actions .mode-pill{background:#1d3025;color:#f4f2eb;border:1px solid #35523d}
+ body.christmas-mode .shortcuts-panel{background:#19251e}
+ body.christmas-mode .shortcut-icon{background:#223329;color:#e0bd63}
+ body.christmas-mode .home-story{border-bottom-color:#35443a}
+ body.christmas-mode .home-story h3{color:#f4f2eb}
+ body.christmas-mode .christmas-greeting{color:#e0d8c8}
+}
+
 </style>
 </head>
 
