@@ -172,6 +172,22 @@ main{width:min(100% - 24px,1050px)}
 .discover-grid{grid-template-columns:1fr}
 .support-wrap{margin:25px auto;padding:18px}
 }
+
+/* GHANA SEARCH Christmas edition */
+body.christmas-mode{--gold:#c99b36;--gold2:#e4c77b}
+.christmas-banner{display:none;text-align:center;padding:9px 12px;background:linear-gradient(90deg,#781e27,#a52b35,#781e27);color:#fff;font-size:12px;font-weight:700;letter-spacing:1.4px}
+body.christmas-mode .christmas-banner{display:block}
+body.christmas-mode .topbar{border-bottom:2px solid #b52e38;box-shadow:0 2px 14px rgba(181,46,56,.12)}
+body.christmas-mode .brand-mark{border-color:#b52e38;color:#b52e38}
+body.christmas-mode .logo-word span{background:linear-gradient(100deg,#b52e38 5%,#c99b36 48%,#21834a 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.christmas-greeting{display:none;color:var(--muted);font-size:14px;margin:-18px 0 25px;letter-spacing:.5px}
+body.christmas-mode .christmas-greeting{display:block}
+.snow-layer{display:none;position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:45}
+body.christmas-mode .snow-layer{display:block}
+.snowflake{position:absolute;top:-24px;color:#b9d9ee;text-shadow:0 0 7px rgba(255,255,255,.8);font-size:var(--snow-size,12px);opacity:var(--snow-opacity,.7);animation:snow-fall var(--snow-time,12s) linear var(--snow-delay,0s) infinite;left:var(--snow-left,50%)}
+@keyframes snow-fall{0%{transform:translate3d(0,-20px,0) rotate(0deg)}100%{transform:translate3d(var(--snow-drift,35px),110vh,0) rotate(360deg)}}
+body.christmas-mode .primary-btn{background:#b52e38;border-color:#b52e38;color:#fff}
+@media(prefers-reduced-motion:reduce){.snowflake{animation:none;display:none}}
 </style>
 </head>
 
@@ -205,6 +221,9 @@ main{width:min(100% - 24px,1050px)}
 </div>
 </div>
 </header>
+
+<div class="christmas-banner" id="christmasBanner">✦ MERRY CHRISTMAS ✦ GHANA SEARCH HOLIDAY EDITION ✦</div>
+<div class="snow-layer" id="snowLayer" aria-hidden="true"></div>
 
 <main>
 
@@ -268,6 +287,7 @@ main{width:min(100% - 24px,1050px)}
 <section class="home-hero">
 <h1 class="logo-word">GHANA <span>SEARCH</span></h1>
 <p class="tagline">Search the world. Start with Ghana.</p>
+<p class="christmas-greeting">🎄 Season’s greetings from GHANA SEARCH ✨</p>
 
 <form class="search-form" method="post" action="/" autocomplete="off">
 <input type="hidden" name="search_type" value="all">
@@ -1120,6 +1140,30 @@ async function loadDiscover(){
 }
 
 loadDiscover();
+
+
+// Seasonal Christmas homepage decoration. Search functionality remains unchanged.
+(()=>{
+ const now=new Date();
+ const month=now.getMonth(),day=now.getDate();
+ const christmasWindow=(month===10&&day>=27)||month===11||(month===0&&day<=2);
+ const isHome=location.pathname==="/"&&!new URLSearchParams(location.search).has("q");
+ if(!christmasWindow||!isHome)return;
+ document.body.classList.add("christmas-mode");
+ const layer=document.getElementById("snowLayer");
+ if(!layer||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ for(let i=0;i<26;i++){
+  const flake=document.createElement("span");
+  flake.className="snowflake";flake.textContent="❄";
+  flake.style.setProperty("--snow-left",(Math.random()*100)+"%");
+  flake.style.setProperty("--snow-size",(9+Math.random()*12)+"px");
+  flake.style.setProperty("--snow-time",(9+Math.random()*12)+"s");
+  flake.style.setProperty("--snow-delay",(-Math.random()*18)+"s");
+  flake.style.setProperty("--snow-drift",(-35+Math.random()*70)+"px");
+  flake.style.setProperty("--snow-opacity",(.35+Math.random()*.5).toFixed(2));
+  layer.appendChild(flake);
+ }
+})();
 
 if("serviceWorker" in navigator){
     window.addEventListener("load",()=>{
