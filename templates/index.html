@@ -2025,5 +2025,60 @@ window.addEventListener("load", function () {
 });
 </script>
 
+
+<script>
+/* Reliable homepage controls: bind after all page scripts have loaded. */
+(function () {
+  function bindHomepageControls() {
+    const aiButton = document.getElementById("aiModeButton");
+    const incognitoButton = document.getElementById("incognitoButton");
+    const incognitoValue = document.getElementById("incognitoValue");
+    const aiScreen = document.getElementById("aiModeScreen");
+    const aiInput = document.getElementById("aiModeInput");
+
+    if (aiButton && aiScreen && !aiButton.dataset.reliableBound) {
+      aiButton.dataset.reliableBound = "1";
+      aiButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        aiScreen.classList.add("open");
+        aiScreen.setAttribute("aria-hidden", "false");
+        document.body.classList.add("ai-mode-open");
+        window.setTimeout(function () {
+          if (aiInput) aiInput.focus();
+        }, 100);
+      });
+    }
+
+    if (incognitoButton && incognitoValue && !incognitoButton.dataset.reliableBound) {
+      incognitoButton.dataset.reliableBound = "1";
+      incognitoButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        const enabled = incognitoValue.value !== "1";
+        incognitoValue.value = enabled ? "1" : "0";
+        incognitoButton.classList.toggle("active", enabled);
+        incognitoButton.setAttribute("aria-pressed", enabled ? "true" : "false");
+        incognitoButton.textContent = enabled ? "♙  Incognito is on" : "♙  Incognito";
+      });
+    }
+
+    const closeButton = document.getElementById("closeAIMode");
+    if (closeButton && aiScreen && !closeButton.dataset.reliableBound) {
+      closeButton.dataset.reliableBound = "1";
+      closeButton.addEventListener("click", function () {
+        aiScreen.classList.remove("open");
+        aiScreen.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("ai-mode-open");
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindHomepageControls);
+  } else {
+    bindHomepageControls();
+  }
+})();
+</script>
+
 </body>
 </html>
