@@ -416,6 +416,50 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 body.ai-mode-open{overflow:hidden}
 @media(min-width:700px){.ai-mode-screen{inset:0 0 0}.ai-mode-top{height:76px}.ai-mode-conversation{padding-top:42px}.ai-mode-composer{max-width:780px;width:calc(100% - 40px);align-self:center;margin-bottom:16px}}
 
+
+/* Final mobile layout pass: restore shortcut row and balance the homepage */
+@media(max-width:650px){
+ body{background:#101418;color:#f1f3f4}
+ .topbar{position:absolute;top:78px;right:16px;width:auto;height:auto;min-height:0;padding:0;background:transparent;border:0;z-index:70}
+ .topbar .brand,.topbar .menu-wrap{display:none!important}
+ .top-actions{display:flex;margin:0}
+ #themeToggle{width:46px;height:46px;border-radius:50%;background:#263943;color:#f1f3f4;border:1px solid #3c4850;font-size:21px;box-shadow:0 2px 8px #0003}
+ main{width:calc(100% - 32px);margin:0 auto}
+ .home-hero{width:100%;min-height:0;height:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:78px 0 14px;margin:0}
+ .logo-word{display:block;width:100%;white-space:nowrap;text-align:center;font-size:clamp(34px,8.2vw,56px);line-height:1.15;letter-spacing:-1.8px;margin:18px 0 38px;padding:0 2px}
+ .logo-word span{white-space:nowrap;background:none;color:#f1f3f4}
+ .tagline{display:none!important}
+ .search-form{width:100%;max-width:100%;margin:0 auto}
+ .search-shell{height:66px;width:100%;box-sizing:border-box;padding:0 13px;gap:8px;border:0;border-radius:38px;background:#243b46;box-shadow:none}
+ .search-shell input{flex:1;min-width:0;font-size:16px;color:#f1f3f4}
+ .search-shell input::placeholder{font-size:15px;color:#d5dce0}
+ .search-tool{flex:0 0 34px;width:34px;padding:0;font-size:22px}
+ .search-symbol{display:none}
+ .home-language-row{width:100%;display:flex;flex-direction:row;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 17px;margin:20px auto 0;padding:0 2px;font-size:14px;line-height:1.4;text-align:center}
+ .home-language-row #languagePrompt{width:100%;flex:0 0 100%;text-align:center;color:#bdc1c6}
+ .home-language-row .language-name{display:inline-block;flex:0 0 auto;width:auto;padding:5px 0;border:0;background:transparent;color:#a8c7fa;font:inherit}
+ .home-mode-actions{width:100%;display:flex;flex-direction:row;gap:10px;margin:20px 0 0}
+ .home-mode-actions .mode-pill{flex:1;min-width:0;height:76px;padding:0 6px;border-radius:42px;font-size:15px;white-space:nowrap}
+ .shortcuts-panel{display:block!important;width:100%;margin:22px 0 0;padding:14px 8px;background:#1c2228;border-radius:28px;overflow:hidden}
+ .shortcuts-row{display:flex;gap:12px;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;padding:0 4px 3px}
+ .shortcuts-row::-webkit-scrollbar{display:none}
+ .shortcut{flex:0 0 88px;min-width:88px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;text-align:center}
+ .shortcut-icon{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#242b32;font-size:27px}
+ .home-feed{width:100%;margin:0;padding:30px 0 88px}
+ .home-feed-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+ .home-feed-head h2{font-size:22px;line-height:1.25;font-weight:500;margin:0}
+ .home-feed-head a{font-size:13px!important;white-space:nowrap}
+ .home-feed-head p{display:none}
+ .home-feed-grid{display:block}
+ .home-story{display:grid;grid-template-columns:minmax(0,1fr) 76px;align-items:center;gap:12px;padding:13px 0;background:transparent;border:0;border-bottom:1px solid #45494f;border-radius:0}
+ .home-story img,.home-story-placeholder{grid-column:2;grid-row:1;width:76px;height:76px;border-radius:9px;object-fit:cover}
+ .home-story-body{grid-column:1;grid-row:1;padding:0}
+ .home-story-meta{font-size:12px;color:#aeb4bd}
+ .home-story h3{font-size:16px;font-weight:500;line-height:1.35;margin:5px 0;color:#e8eaed}
+ .home-story p{display:none}
+ .home-feed-status{padding:20px 0;text-align:center;color:#bdc1c6;font-size:14px}
+}
+
 </style>
 </head>
 
@@ -1357,13 +1401,25 @@ async function loadHomeFeed(){
   b.append(m,t,d);a.appendChild(b);grid.appendChild(a);
  }
  async function next(){
-  if(loading||finished)return;loading=true;status.textContent=page===1?"Loading worldwide trending stories…":"Loading more stories…";
-  try{const r=await fetch("/api/discover?page="+page+"&region=worldwide");const data=await r.json();const items=data.items||[];const before=seen.size;items.forEach(add);
-   if(!items.length){finished=true;status.textContent=page===1?(data.message||"Trending stories are temporarily unavailable."):"You’re all caught up."}
+  if(loading||finished)return;loading=true;
+  status.textContent=page===1?"Loading worldwide trending stories…":"Loading more stories…";
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),14000);
+  try{
+   const response=await fetch("/api/discover?page="+page+"&region=worldwide",{signal:controller.signal,cache:"no-store"});
+   if(!response.ok)throw new Error("News service returned "+response.status);
+   const data=await response.json();const items=Array.isArray(data.items)?data.items:[];const before=seen.size;items.forEach(add);
+   if(!items.length){finished=true;status.textContent=page===1?(data.message||"Trending stories are temporarily unavailable. Tap here to retry."):"You’re all caught up."}
    else{page++;status.textContent=seen.size===before?"You’re all caught up.":"Scroll down for more stories."}
-  }catch(e){status.textContent="Could not load the news feed. Please refresh and try again."}finally{loading=false}
+  }catch(e){
+   finished=true;
+   status.textContent=e.name==="AbortError"?"The news feed is taking too long. Tap here to retry.":"News is temporarily unavailable. Tap here to retry.";
+  }finally{clearTimeout(timeout);loading=false}
  }
- await next();if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>{if(entries.some(x=>x.isIntersecting)&&!loading&&!finished)next()},{rootMargin:"500px"});observer.observe(status)}
+ status.style.cursor="pointer";
+ status.addEventListener("click",()=>{if(finished){finished=false;page=1;next()}});
+ await next();
+ if("IntersectionObserver" in window){const observer=new IntersectionObserver(entries=>{if(entries.some(x=>x.isIntersecting)&&!loading&&!finished)next()},{rootMargin:"500px"});observer.observe(status)}
 }
 loadHomeFeed();
 
