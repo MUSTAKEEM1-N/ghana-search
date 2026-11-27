@@ -616,6 +616,55 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
  .home-story{display:grid!important;grid-template-columns:minmax(0,1fr) 76px!important;align-items:center!important;gap:12px!important;padding:13px 0!important;background:transparent!important;border:0!important;border-bottom:1px solid #45494f!important}
 }
 
+
+/* Reference-homepage restoration: one final mobile layout layer, leaving desktop and app logic intact */
+@media(max-width:650px){
+ body{background:#101316!important;color:#f1f3f4!important}
+ .topbar{position:absolute!important;top:190px!important;right:28px!important;left:auto!important;width:auto!important;height:auto!important;min-height:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;z-index:60!important;overflow:visible!important}
+ .topbar .brand,.topbar #menuToggle,.topbar .menu-wrap{display:none!important}
+ .top-actions{display:flex!important;margin:0!important}
+ #themeToggle{display:grid!important;place-items:center!important;width:96px!important;height:96px!important;border-radius:50%!important;background:#243943!important;border:0!important;border-bottom:5px solid #a52b35!important;color:#f1f3f4!important;font-size:30px!important;box-shadow:none!important}
+ .christmas-banner{display:flex!important;min-height:110px!important;padding:18px 22px!important;align-items:center!important;justify-content:center!important;background:linear-gradient(100deg,#781e27,#a52b35,#781e27)!important;font-size:clamp(15px,4vw,22px)!important;line-height:1.5!important;letter-spacing:2px!important;text-align:center!important}
+ main{width:calc(100% - 32px)!important;max-width:680px!important;margin:0 auto!important}
+ .home-hero{width:100%!important;min-height:0!important;height:auto!important;padding:210px 0 20px!important;margin:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;text-align:center!important}
+ .logo-word{display:block!important;width:100%!important;font-size:clamp(35px,9.5vw,58px)!important;line-height:1.15!important;letter-spacing:-1.8px!important;font-weight:700!important;margin:0 0 86px!important;padding:0!important;white-space:nowrap!important;color:#f1f3f4!important}
+ .logo-word span{background:linear-gradient(100deg,#b52e38 5%,#c99b36 48%,#21834a 95%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+ .tagline{display:none!important}
+ .christmas-greeting{display:none!important}
+ .search-form{width:100%!important;max-width:100%!important;margin:0!important}
+ .search-shell{display:flex!important;width:100%!important;height:136px!important;box-sizing:border-box!important;padding:0 24px!important;gap:15px!important;border:0!important;border-radius:72px!important;background:#243b46!important;box-shadow:none!important}
+ .search-shell:focus-within{outline:2px solid #8ab4f8!important}
+ .search-symbol{display:none!important}
+ .search-shell input{display:block!important;flex:1!important;min-width:0!important;font-size:clamp(17px,4vw,25px)!important;font-weight:600!important;color:#f1f3f4!important}
+ .search-shell input::placeholder{color:#e0e5e8!important;opacity:1!important}
+ .search-tool{display:inline-flex!important;flex:0 0 42px!important;width:42px!important;height:54px!important;align-items:center!important;justify-content:center!important;padding:0!important;border:0!important;background:transparent!important;color:#e8edf0!important;font-size:34px!important;cursor:pointer!important}
+ .search-tool#voiceSearch{font-size:36px!important}
+ .search-tool#visualSearch{font-size:28px!important}
+ #clearHomeSearch{display:none!important}
+ .home-language-row{display:flex!important;width:100%!important;flex-direction:row!important;justify-content:center!important;align-items:center!important;flex-wrap:wrap!important;gap:12px 25px!important;margin:44px auto 0!important;padding:0 4px!important;font-size:21px!important;line-height:1.4!important;text-align:center!important}
+ .home-language-row #languagePrompt{width:100%!important;flex:0 0 100%!important;text-align:center!important;color:#bdc1c6!important;font-size:21px!important;margin-bottom:8px!important}
+ .home-language-row .language-name{display:inline-block!important;flex:0 0 auto!important;width:auto!important;padding:0!important;border:0!important;background:transparent!important;color:#a8c7fa!important;font:inherit!important}
+ .home-language-row .language-name.active{text-decoration:underline!important;text-underline-offset:7px!important;font-weight:700!important}
+ .home-mode-actions{display:flex!important;width:100%!important;gap:16px!important;margin:52px 0 0!important}
+ .home-mode-actions .mode-pill{display:flex!important;flex:1!important;min-width:0!important;height:118px!important;align-items:center!important;justify-content:center!important;padding:0 8px!important;border:0!important;border-radius:64px!important;background:#243b46!important;color:#e8edf0!important;font-size:27px!important;font-weight:700!important;white-space:nowrap!important}
+ .home-mode-actions .mode-pill.active{outline:4px solid #8ab4f8!important;background:#304c58!important}
+ .shortcuts-panel{display:none!important}
+ .home-extra-actions{display:none!important}
+ .home-feed{display:block!important;width:100%!important;margin:0!important;padding:130px 0 88px!important}
+ .home-feed-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0 0 30px!important}
+ .home-feed-head h2{font-size:clamp(24px,5vw,34px)!important;line-height:1.25!important;font-weight:600!important;margin:0!important}
+ .home-feed-head a{font-size:clamp(16px,4vw,22px)!important;white-space:nowrap!important}
+ .home-feed-head p{display:none!important}
+ .home-feed-grid{display:block!important}
+ .home-story{display:grid!important;grid-template-columns:minmax(0,1fr) 152px!important;align-items:center!important;gap:18px!important;padding:20px 0!important;background:transparent!important;border:0!important;border-bottom:1px solid #45494f!important;border-radius:0!important}
+ .home-story img,.home-story-placeholder{grid-column:2!important;grid-row:1!important;width:152px!important;height:152px!important;border-radius:18px!important}
+ .home-story-body{grid-column:1!important;grid-row:1!important;padding:0!important}
+ .home-story-meta{font-size:16px!important;color:#aeb4bd!important;text-transform:none!important}
+ .home-story h3{font-size:clamp(19px,4.5vw,27px)!important;line-height:1.4!important;margin:12px 0!important}
+ .home-story p{display:none!important}
+ .home-feed-status{font-size:17px!important}
+}
+
 </style>
 </head>
 
@@ -727,8 +776,11 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
 <input type="hidden" name="incognito" id="incognitoValue" value="0">
 
 <div class="search-shell">
+<button class="search-tool" type="button" id="searchPlus" aria-label="Search tools" title="Search tools">＋</button>
 <span class="search-symbol">⌕</span>
-<input id="searchInput" name="search" type="search" placeholder="Search anything around the world" required autofocus>
+<input id="searchInput" name="search" type="search" placeholder="Ask GHANA SEARCH Anything" required autofocus>
+<button class="search-tool" type="button" id="voiceSearch" aria-label="Voice search" title="Voice search">🎙</button>
+<button class="search-tool" type="button" id="visualSearch" aria-label="Search images" title="Search images">▣</button>
 <button class="clear-btn" type="button" id="clearHomeSearch" aria-label="Clear search">×</button>
 </div>
 <div class="suggestions" id="suggestions"></div>
