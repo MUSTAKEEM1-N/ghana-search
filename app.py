@@ -69,7 +69,8 @@ def normalize_result(item, search_type):
 
     if search_type == "images":
         url = clean_url(item.get("url") or item.get("href"))
-        image = clean_url(item.get("image") or item.get("thumbnail"))
+        # Prefer provider thumbnails; direct publisher image URLs often block hotlinking.
+        image = clean_url(item.get("thumbnail") or item.get("image"))
         title = clean_text(item.get("title"), 250) or "Image result"
         description = clean_text(item.get("source") or item.get("title"), 350)
         category = "IMAGE"
@@ -178,33 +179,64 @@ def deduplicate(items):
     return output
 
 
+def result_matches_query(item, query):
+    """Reject clearly unrelated vertical results without requiring every query word."""
+    stop_words = {
+        "the", "and", "for", "with", "from", "about", "who", "what", "where",
+        "when", "why", "how", "are", "was", "were", "is", "in", "on", "at",
+        "to", "of", "a", "an", "me", "show", "find", "search", "pictures",
+        "picture", "images", "image", "videos", "video", "photos", "photo",
+    }
+    terms = [
+        word for word in re.findall(r"[a-z0-9]+", query.lower())
+        if len(word) > 1 and word not in stop_words
+    ]
+    if not terms:
+        return True
+    text_value = " ".join(str(item.get(key, "")) for key in
+                          ("title", "description", "source", "publisher", "uploader")).lower()
+    text_value = re.sub(r"[^a-z0-9]+", " ", text_value)
+    matches = sum(
+        1 for term in set(terms)
+        if re.search(r"\\b" + re.escape(term) + r"\\b", text_value)
+    )
+    required = 1 if len(set(terms)) <= 2 else 2
+    return matches >= required
+
+
 def search_web(query, search_type="all", region="worldwide", safe="moderate", page=1):
     region_code = REGIONS.get(region, "wt-wt")
     safe_value = {"strict": "on", "moderate": "moderate", "off": "off"}.get(safe, "moderate")
     page = max(1, min(int(page), MAX_PAGE))
+    common = {
+        "region": region_code,
+        "safesearch": safe_value,
+        "max_results": 18 if search_type in ("images", "videos") else 12,
+        "page": page,
+    }
     try:
-        with DDGS(timeout=4) as ddgs:
-            common = {
-                "region": region_code,
-                "safesearch": safe_value,
-                "max_results": 12,
-                "page": page,
-            }
+        with DDGS(timeout=5) as ddgs:
             if search_type == "images":
-                raw = ddgs.images(query, **common)
+                try:
+                    raw = ddgs.images(query, backend="bing", **common)
+                except Exception as image_error:
+                    logger.warning("Bing image search failed; trying DuckDuckGo: %r", image_error)
+                    raw = ddgs.images(query, backend="duckduckgo", **common)
             elif search_type == "news":
                 raw = ddgs.news(query, **common)
             elif search_type == "videos":
-                raw = ddgs.videos(query, **common)
+                raw = ddgs.videos(query, backend="duckduckgo", **common)
             else:
                 search_query = f"{query} jobs vacancies careers" if search_type == "jobs" else query
                 raw = ddgs.text(search_query, backend="auto", **common)
 
-        results = [
-            normalized for normalized in
-            (normalize_result(item, search_type) for item in raw)
-            if normalized
-        ]
+        results = []
+        for item in raw:
+            if search_type in ("images", "videos") and not result_matches_query(item, query):
+                continue
+            normalized = normalize_result(item, search_type)
+            if normalized:
+                results.append(normalized)
         return deduplicate(results)[:12], ""
     except Exception as exc:
         logger.warning("Search provider request failed: %r", exc)
