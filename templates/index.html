@@ -1817,5 +1817,60 @@ document.querySelectorAll("[data-aimode]").forEach(tab=>tab.addEventListener("cl
 }));
 
 </script>
+
+<script>
+/* Independent homepage feed recovery: keeps the news cards working even if
+   another homepage script fails before its own feed initializer runs. */
+window.addEventListener("load", function () {
+  window.setTimeout(async function () {
+    const grid = document.getElementById("homeFeedGrid");
+    const status = document.getElementById("homeFeedStatus");
+    if (!grid || !status || grid.children.length) return;
+    status.textContent = "Loading worldwide trending stories…";
+    try {
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), 12000);
+      const response = await fetch("/api/discover?region=worldwide&page=1", {
+        cache: "no-store", signal: controller.signal
+      });
+      window.clearTimeout(timer);
+      if (!response.ok) throw new Error("News request failed");
+      const data = await response.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      if (!items.length) {
+        status.textContent = data.message || "Trending stories are temporarily unavailable. Please try again.";
+        return;
+      }
+      grid.replaceChildren();
+      items.forEach(function (item) {
+        if (!item || !item.title || !item.url) return;
+        const card = document.createElement("a");
+        card.className = "home-story";
+        card.href = item.url;
+        card.target = "_blank";
+        card.rel = "noopener noreferrer";
+        const body = document.createElement("div");
+        body.className = "home-story-body";
+        const meta = document.createElement("div");
+        meta.className = "home-story-meta";
+        meta.textContent = (item.topic || "World") + " · " + (item.source || "Trending");
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+        const desc = document.createElement("p");
+        desc.textContent = item.description || "Open this story to read the latest report.";
+        body.append(meta, title, desc);
+        card.appendChild(body);
+        grid.appendChild(card);
+      });
+      status.textContent = grid.children.length ? "Latest stories from around the world." : "No readable stories were returned. Please refresh.";
+    } catch (error) {
+      status.textContent = "News is temporarily unavailable. Tap here to retry.";
+      status.style.cursor = "pointer";
+      status.onclick = function () { window.location.reload(); };
+    }
+  }, 700);
+});
+</script>
+
 </body>
 </html>
