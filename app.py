@@ -219,6 +219,9 @@ def search_web(query, search_type="all", region="worldwide", safe="moderate", pa
             if search_type == "images":
                 try:
                     raw = ddgs.images(query, backend="bing", **common)
+                    if not raw:
+                        logger.info("Bing image search returned no results; trying DuckDuckGo.")
+                        raw = ddgs.images(query, backend="duckduckgo", **common)
                 except Exception as image_error:
                     logger.warning("Bing image search failed; trying DuckDuckGo: %r", image_error)
                     raw = ddgs.images(query, backend="duckduckgo", **common)
