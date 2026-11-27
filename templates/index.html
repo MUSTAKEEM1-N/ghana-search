@@ -832,7 +832,7 @@ for <strong>{{ query }}</strong>
 {% for item in results %}
 <a class="{% if search_type == 'images' %}image-card{% else %}video-card{% endif %}" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
 {% if item.image %}
-<img src="{{ item.image }}" alt="" loading="lazy">
+<img src="{{ item.image }}" alt="" loading="lazy" onerror="this.closest('.image-card, .video-card').remove()">
 {% else %}
 <div style="height:150px;background:var(--surface2)"></div>
 {% endif %}
@@ -1394,6 +1394,7 @@ if(loadMore&&resultsBox){
                         img.src=item.image;
                         img.loading="lazy";
                         img.alt="";
+                        img.onerror=()=>a.remove();
                         a.appendChild(img);
                     }
 
