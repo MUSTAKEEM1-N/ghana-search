@@ -5,7 +5,8 @@ import json
 import time
 import secrets
 import logging
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
+import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 
@@ -107,6 +108,56 @@ def normalize_result(item, search_type):
         "image": image, "category": category, "source": source,
         "date": clean_text(item.get("date") or item.get("published"), 80),
     }
+
+
+
+def fetch_discover_rss(region_code="wt-wt"):
+    """Fallback Discover feed using Google News RSS when DDGS is unavailable."""
+    params = {
+        "q": "Ghana OR Africa OR world OR technology OR business OR sports",
+        "hl": "en",
+        "gl": "GH" if region_code == "gh-en" else "US",
+        "ceid": "GH:en" if region_code == "gh-en" else "US:en",
+    }
+    rss_url = "https://news.google.com/rss/search?" + urlencode(params)
+    req = Request(
+        rss_url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; GhanaSearch/1.0)"}
+    )
+    with urlopen(req, timeout=6) as response:
+        payload = response.read(1_500_000)
+    root = ET.fromstring(payload)
+    feed = []
+    for item in root.findall(".//item")[:18]:
+        title = clean_text(item.findtext("title"), 250)
+        link = clean_url(item.findtext("link"))
+        description = clean_text(item.findtext("description"), 650)
+        if not title or not link:
+            continue
+        value = (title + " " + description).lower()
+        if any(word in value for word in ("ghana", "accra", "kumasi", "tamale")):
+            topic = "Ghana"
+        elif any(word in value for word in ("technology", "artificial intelligence", "software", "smartphone")):
+            topic = "Technology"
+        elif any(word in value for word in ("business", "market", "economy", "finance")):
+            topic = "Business"
+        elif any(word in value for word in ("football", "sports", "soccer", "league")):
+            topic = "Sports"
+        elif "africa" in value:
+            topic = "Africa"
+        else:
+            topic = "World"
+        feed.append({
+            "title": title,
+            "description": description,
+            "url": link,
+            "image": "",
+            "category": "NEWS",
+            "source": "Google News",
+            "date": clean_text(item.findtext("pubDate"), 80),
+            "topic": topic,
+        })
+    return feed
 
 
 def deduplicate(items):
@@ -413,19 +464,10 @@ def discover():
 def api_discover():
     region = request.args.get("region", session.get("region", "worldwide"))
     region_code = REGIONS.get(region, "wt-wt")
-    topics = [
-        ("Ghana", "Ghana latest news"),
-        ("World", "world latest news"),
-        ("Technology", "latest technology news"),
-        ("Business", "global business news"),
-        ("Sports", "latest sports news"),
-        ("Africa", "Africa latest news"),
-    ]
-    
-    feed = []
+
     try:
-        # Use one lightweight news request instead of six sequential provider calls.
-        with DDGS(timeout=7) as ddgs:
+        # Primary provider: DuckDuckGo news.
+        with DDGS(timeout=5) as ddgs:
             raw = ddgs.news(
                 "Ghana world Africa technology business sports latest news",
                 region=region_code,
@@ -433,6 +475,7 @@ def api_discover():
                 max_results=18,
                 page=1,
             )
+            feed = []
             for item in raw:
                 row = normalize_result(item, "news")
                 if not row:
@@ -450,12 +493,25 @@ def api_discover():
                     row["topic"] = "Africa"
                 else:
                     row["topic"] = "World"
-                feed.append(row)
         feed = deduplicate(feed)
-        return jsonify(items=feed[:18], message="" if feed else "The news feed is temporarily unavailable.")
+        if feed:
+            return jsonify(items=feed[:18], message="")
+
+        logger.warning("Discover primary provider returned no stories; trying RSS fallback.")
     except Exception as exc:
-        logger.warning("Discover feed request failed: %r", exc)
-        return jsonify(items=[], message="The news feed is temporarily unavailable."), 200
+        logger.warning("Discover primary provider failed: %r; trying RSS fallback.", exc)
+
+    try:
+        feed = deduplicate(fetch_discover_rss(region_code))
+        if feed:
+            return jsonify(items=feed[:18], message="")
+    except Exception as exc:
+        logger.warning("Discover RSS fallback failed: %r", exc)
+
+    return jsonify(
+        items=[],
+        message="Discover is temporarily unable to reach its news sources. Please try again shortly."
+    ), 200
 
 
 @app.route("/support")
