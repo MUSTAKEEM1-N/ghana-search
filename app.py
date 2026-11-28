@@ -138,7 +138,7 @@ def fetch_discover_rss(region_code="wt-wt", page=1):
         image = ""
         # Google News often embeds its thumbnail in description HTML.
         image_match = re.search(
-            r'<img[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+            r"<img[^>]+(?:src|data-src)=['\\"]([^'\\"]+)['\\"]",
             html.unescape(raw_description),
             re.IGNORECASE,
         )
