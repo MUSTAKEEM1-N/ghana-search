@@ -830,6 +830,19 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
  main{padding-bottom:76px!important}
  body.ai-mode-open #themeToggle,body.ai-mode-open .browser-tabs{display:none!important}
 }
+/* Mobile controls must remain tappable above the page */
+@media(max-width:650px){
+.browser-tabs{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:99999!important;height:62px!important;min-height:62px!important;display:flex!important;align-items:center!important;justify-content:space-around!important;pointer-events:auto!important}
+#newBrowserTab,#mobileTabCount,#mobileMenuButton{position:relative!important;z-index:100000!important;display:grid!important;place-items:center!important;pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important}
+#newBrowserTab{order:2!important;width:42px!important;height:42px!important;font-size:32px!important}
+#mobileTabCount{order:3!important;width:38px!important;height:38px!important;font-size:15px!important}
+#mobileMenuButton{order:4!important;width:38px!important;height:42px!important}
+.mobile-home-link{order:1!important;pointer-events:auto!important}
+#themeToggle{position:fixed!important;top:84px!important;right:14px!important;z-index:100001!important;display:grid!important;place-items:center!important;width:44px!important;height:44px!important;pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important}
+.mobile-tab-grid.open{position:fixed!important;left:10px!important;right:10px!important;bottom:72px!important;top:auto!important;z-index:100002!important;display:grid!important;max-height:65vh!important;overflow:auto!important;pointer-events:auto!important}
+.mobile-quick-menu.open{position:fixed!important;right:10px!important;bottom:72px!important;top:auto!important;z-index:100002!important;display:flex!important;flex-direction:column!important;pointer-events:auto!important}
+body.ai-mode-open .browser-tabs{display:none!important}
+}
 </style>
 </head>
 
@@ -1229,8 +1242,8 @@ function toggleTheme(){
     setTheme(currentlyDark?"light":"dark");
 }
 
-if($("themeToggle"))$("themeToggle").addEventListener("click",toggleTheme);
-if($("menuTheme"))$("menuTheme").addEventListener("click",()=>{toggleTheme();if(menu)menu.classList.remove("open")});
+
+
 if($("menuToggle"))$("menuToggle").addEventListener("click",e=>{e.stopPropagation();if(menu)menu.classList.toggle("open")});
 
 document.addEventListener("click",e=>{
@@ -1877,59 +1890,8 @@ if("serviceWorker" in navigator){
     });
 }
 
-// Reliable mobile tab manager with persistent tabs.
-(()=>{
- const KEY="ghana-search-browser-tabs-v2",ACTIVE="ghana-search-active-tab";
- const list=$("browserTabList"),newBtn=$("newBrowserTab"),count=$("mobileTabCount"),grid=$("mobileTabGrid");
- if(!list||!newBtn||!count||!grid)return;
- const read=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
- const write=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
- function load(){try{const a=JSON.parse(read(KEY,"[]"));if(Array.isArray(a)&&a.length)return a.filter(t=>t&&t.id).slice(0,50)}catch(e){}return [{id:Date.now(),title:"New Tab",query:"",type:"all"}]}
- let tabs=load(),active=Number(read(ACTIVE,"0"))||tabs[0].id;
- if(!tabs.some(t=>Number(t.id)===active))active=tabs[0].id;
- function save(){write(KEY,JSON.stringify(tabs));write(ACTIVE,String(active));count.textContent=String(tabs.length)}
- function go(tab){
-  if(!tab)return;active=Number(tab.id);save();grid.classList.remove("open");
-  if(!tab.query){location.href="/";return}
-  const form=document.createElement("form");form.method="POST";form.action="/";
-  const values={search:tab.query,search_type:tab.type||"all",region:tab.region||read("gs-region","worldwide"),safe:tab.safe||read("gs-safe","moderate")};
-  Object.entries(values).forEach(([n,v])=>{const el=document.createElement("input");el.type="hidden";el.name=n;el.value=v;form.appendChild(el)});
-  document.body.appendChild(form);form.submit();
- }
- function close(id){
-  if(tabs.length===1){tabs=[{id:Date.now(),title:"New Tab",query:"",type:"all"}];active=tabs[0].id;save();render();location.href="/";return}
-  tabs=tabs.filter(t=>Number(t.id)!==Number(id));
-  if(Number(active)===Number(id)){active=tabs[tabs.length-1].id;save();render();go(tabs.find(t=>Number(t.id)===Number(active)));return}
-  save();render();
- }
- function render(){
-  list.replaceChildren();grid.replaceChildren();
-  tabs.forEach(tab=>{
-   const card=document.createElement("button");card.type="button";card.className="mobile-tab-card";
-   const x=document.createElement("span");x.className="tab-close";x.textContent="×";x.setAttribute("aria-label","Close tab");x.addEventListener("click",e=>{e.stopPropagation();close(tab.id)});
-   const title=document.createElement("strong");title.textContent=tab.title||"New Tab";
-   const small=document.createElement("small");small.textContent=tab.query||"Blank search tab";
-   card.append(x,title,small);card.addEventListener("click",()=>go(tab));grid.appendChild(card);
-   const b=document.createElement("button");b.type="button";b.className="browser-tab"+(Number(tab.id)===Number(active)?" active":"");
-   const label=document.createElement("span");label.className="browser-tab-title";label.textContent=tab.title||"New Tab";
-   const closeBtn=document.createElement("span");closeBtn.className="close-browser-tab";closeBtn.textContent="×";closeBtn.addEventListener("click",e=>{e.stopPropagation();close(tab.id)});
-   b.append(label,closeBtn);b.addEventListener("click",()=>go(tab));list.appendChild(b);
-  });save();
- }
- count.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();grid.classList.toggle("open")});
- document.addEventListener("click",e=>{if(!grid.contains(e.target)&&e.target!==count)grid.classList.remove("open")});
- newBtn.addEventListener("click",e=>{
-  e.preventDefault();if(tabs.length>=50){alert("You can keep up to 50 GHANA SEARCH tabs open.");return}
-  const id=Date.now()+Math.floor(Math.random()*1000),tab={id:id,title:"New Tab",query:"",type:"all"};
-  tabs.push(tab);active=id;save();render();location.href="/";
- });
- document.querySelectorAll('form[method="post"][action="/"]').forEach(form=>form.addEventListener("submit",()=>{
-  const data=new FormData(form),query=String(data.get("search")||"").trim();if(!query)return;
-  let tab=tabs.find(t=>Number(t.id)===Number(active));if(!tab){tab={id:active};tabs.push(tab)}
-  tab.query=query;tab.title=query.length>24?query.slice(0,24)+"…":query;tab.type=data.get("search_type")||"all";tab.region=data.get("region")||"worldwide";tab.safe=data.get("safe")||"moderate";save();
- }));
- render();
-})();</script>
+// Replaced by the final mobile controls initializer.
+</script>
 
 {% if adsense_client and adsense_slot %}
 <script>
@@ -1977,8 +1939,7 @@ window.addEventListener("load",()=>{
  if(trigger&&quick)trigger.addEventListener("click",e=>{e.stopPropagation();quick.classList.toggle("open")});
  const open=document.getElementById("mobileOpenSettings"),panel=document.getElementById("settingsPanel");
  if(open&&panel)open.addEventListener("click",()=>{quick.classList.remove("open");panel.classList.add("open")});
- const theme=document.getElementById("mobileThemeChoice");
- if(theme)theme.addEventListener("click",()=>{toggleTheme();quick.classList.remove("open")});
+
  document.addEventListener("click",e=>{if(quick&&!quick.contains(e.target)&&e.target!==trigger)quick.classList.remove("open")});
 })();
 </script>
@@ -2178,5 +2139,32 @@ window.addEventListener("load", function () {
 })();
 </script>
 
+<script>
+(function(){
+ const $=id=>document.getElementById(id), KEY="ghana-search-tabs-final-v1", ACTIVE="ghana-search-active-final-v1";
+ const list=$("browserTabList"),count=$("mobileTabCount"),grid=$("mobileTabGrid");
+ const read=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
+ const write=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+ let tabs=[];try{const a=JSON.parse(read(KEY,"[]"));if(Array.isArray(a))tabs=a.filter(t=>t&&t.id).slice(0,50)}catch(e){}
+ if(!tabs.length)tabs=[{id:Date.now(),title:"New Tab",query:"",type:"all"}];
+ let active=Number(read(ACTIVE,String(tabs[0].id)))||tabs[0].id;if(!tabs.some(t=>Number(t.id)===active))active=tabs[0].id;
+ function save(){write(KEY,JSON.stringify(tabs));write(ACTIVE,String(active));if(count)count.textContent=String(tabs.length)}
+ function render(){if(!grid||!count)return;grid.replaceChildren();if(list)list.replaceChildren();tabs.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="mobile-tab-card";b.dataset.tabId=String(t.id);const x=document.createElement("span");x.textContent="×";x.dataset.closeTab=String(t.id);const title=document.createElement("strong");title.textContent=t.title||"New Tab";const sub=document.createElement("small");sub.textContent=t.query||"Blank tab";b.append(x,title,sub);grid.append(b)});save()}
+ function selectTab(t){if(!t)return;active=Number(t.id);save();grid.classList.remove("open");const input=$("searchInput"),form=document.querySelector('form[method="post"][action="/"]');if(!t.query){if(input)input.value="";window.scrollTo(0,0);return}if(input&&form){input.value=t.query;const type=form.querySelector('[name="search_type"]');if(type)type.value=t.type||"all";form.requestSubmit()}}
+ function closeTab(id){if(tabs.length===1){tabs=[{id:Date.now(),title:"New Tab",query:"",type:"all"}];active=tabs[0].id}else{tabs=tabs.filter(t=>Number(t.id)!==Number(id));if(Number(active)===Number(id))active=tabs[tabs.length-1].id}render()}
+ document.addEventListener("click",function(e){
+  if(e.target.closest("#newBrowserTab")){e.preventDefault();if(tabs.length>=50){alert("You can open up to 50 tabs.");return}const t={id:Date.now()+Math.floor(Math.random()*10000),title:"New Tab",query:"",type:"all"};tabs.push(t);active=t.id;render();grid.classList.add("open");return}
+  if(e.target.closest("#mobileTabCount")){e.preventDefault();render();grid.classList.toggle("open");return}
+  const close=e.target.closest("[data-close-tab]");if(close){e.preventDefault();e.stopPropagation();closeTab(close.dataset.closeTab);return}
+  const card=e.target.closest("[data-tab-id]");if(card){selectTab(tabs.find(t=>String(t.id)===card.dataset.tabId));return}
+  if(e.target.closest("#themeToggle")||e.target.closest("#mobileThemeChoice")||e.target.closest("#menuTheme")){e.preventDefault();const dark=document.documentElement.classList.toggle("dark");document.documentElement.dataset.theme=dark?"dark":"light";write("gs-theme",dark?"dark":"light");const b=$("themeToggle");if(b){b.textContent=dark?"☀":"☾";b.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode")}const sel=$("appearanceSelect");if(sel)sel.value=dark?"dark":"light";const quick=$("mobileQuickMenu");if(quick)quick.classList.remove("open");return}
+  if(e.target.closest("#mobileMenuButton")){e.preventDefault();const q=$("mobileQuickMenu");if(q)q.classList.toggle("open");return}
+  if(e.target.closest("#mobileOpenSettings")){const q=$("mobileQuickMenu"),p=$("settingsPanel");if(q)q.classList.remove("open");if(p)p.classList.add("open");return}
+  if(grid&&!grid.contains(e.target))grid.classList.remove("open");const q=$("mobileQuickMenu");if(q&&!q.contains(e.target)&&!e.target.closest("#mobileMenuButton"))q.classList.remove("open");
+ });
+ document.querySelectorAll('form[method="post"][action="/"]').forEach(form=>form.addEventListener("submit",function(){const d=new FormData(form),q=String(d.get("search")||"").trim();if(!q)return;let t=tabs.find(x=>Number(x.id)===Number(active));if(!t){t={id:active};tabs.push(t)}t.query=q;t.title=q.length>22?q.slice(0,22)+"…":q;t.type=d.get("search_type")||"all";render()}));
+ render();const saved=read("gs-theme","light"),dark=saved==="dark"||(saved==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",dark);document.documentElement.dataset.theme=dark?"dark":"light";const b=$("themeToggle");if(b){b.textContent=dark?"☀":"☾";b.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode")}
+})();
+</script>
 </body>
 </html>
