@@ -811,6 +811,25 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
  body.ai-mode-open .browser-tabs{display:none!important}
 }
 
+
+/* Final mobile controls and theme visibility repair */
+@media(max-width:650px){
+ .topbar{position:static!important;display:block!important;width:100%!important;height:0!important;min-height:0!important;padding:0!important;border:0!important;background:transparent!important;overflow:visible!important}
+ .topbar .brand,.topbar .menu-wrap{display:none!important}
+ .top-actions{display:block!important}
+ #themeToggle{display:grid!important;position:fixed!important;top:82px!important;right:14px!important;z-index:1200!important;place-items:center!important;width:42px!important;height:42px!important;min-width:42px!important;padding:0!important;border-radius:50%!important;background:#263943!important;border:1px solid #56636b!important;color:#f5f5f5!important;font-size:21px!important;box-shadow:0 2px 9px #0006!important}
+ .home-extra-actions .home-link-btn{display:none!important}
+ .browser-tabs{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:1100!important;height:58px!important;min-height:58px!important;padding:0 14px!important;display:flex!important;align-items:center!important;justify-content:space-around!important;background:#202a31!important;border-top:1px solid #3c4850!important}
+ .mobile-home-link{display:grid!important;order:1!important;place-items:center!important;width:38px!important;height:42px!important;color:#f1f3f4!important;font-size:27px!important;text-decoration:none!important}
+ .new-browser-tab{display:grid!important;order:2!important;place-items:center!important;width:40px!important;height:42px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#d8ad4b!important;font-size:31px!important}
+ .mobile-tab-count{display:grid!important;order:3!important;place-items:center!important;width:34px!important;height:34px!important;margin:0!important;padding:0!important;border:2px solid #c3c9ce!important;border-radius:9px!important;background:transparent!important;color:#f1f3f4!important;font-size:14px!important;cursor:pointer!important}
+ .mobile-menu-button{display:grid!important;order:4!important;place-items:center!important;width:38px!important;height:42px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#f1f3f4!important;font-size:25px!important;cursor:pointer!important}
+ .mobile-tab-grid.open{display:grid!important;position:fixed!important;left:10px!important;right:10px!important;bottom:68px!important;top:auto!important;z-index:1300!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;max-height:65vh!important;overflow:auto!important;padding:12px!important;background:#18221e!important;border:1px solid #b58c32!important;border-radius:14px!important}
+ .mobile-tab-card{min-height:78px!important;display:block!important;padding:10px!important;background:#263943!important;color:#f1f3f4!important}
+ .mobile-quick-menu.open{position:fixed!important;right:10px!important;bottom:68px!important;top:auto!important;z-index:1300!important}
+ main{padding-bottom:76px!important}
+ body.ai-mode-open #themeToggle,body.ai-mode-open .browser-tabs{display:none!important}
+}
 </style>
 </head>
 
@@ -935,8 +954,8 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
 <div class="search-actions home-extra-actions">
 <button class="primary-btn" type="submit">GHANA SEARCH</button>
 <button class="secondary-btn" type="button" id="luckyBtn">I'm Feeling Curious</button>
-<a class="secondary-btn home-link-btn" href="/discover">Explore Discover</a>
-<a class="secondary-btn home-link-btn" href="/support">Support the Creator</a>
+
+
 </div>
 </form>
 <section class="shortcuts-panel" aria-label="Website shortcuts">
@@ -1210,17 +1229,9 @@ function toggleTheme(){
     setTheme(currentlyDark?"light":"dark");
 }
 
-$("themeToggle").addEventListener("click",toggleTheme);
-
-$("menuTheme").addEventListener("click",()=>{
-    toggleTheme();
-    menu.classList.remove("open");
-});
-
-$("menuToggle").addEventListener("click",e=>{
-    e.stopPropagation();
-    menu.classList.toggle("open");
-});
+if($("themeToggle"))$("themeToggle").addEventListener("click",toggleTheme);
+if($("menuTheme"))$("menuTheme").addEventListener("click",()=>{toggleTheme();if(menu)menu.classList.remove("open")});
+if($("menuToggle"))$("menuToggle").addEventListener("click",e=>{e.stopPropagation();if(menu)menu.classList.toggle("open")});
 
 document.addEventListener("click",e=>{
     if(!e.target.closest(".menu-wrap"))menu.classList.remove("open");
@@ -1244,7 +1255,7 @@ panel.addEventListener("click",e=>{
 if($("regionSelect"))$("regionSelect").value=localStorage.getItem("gs-region")||"{{ region }}";
 if($("safeSelect"))$("safeSelect").value=localStorage.getItem("gs-safe")||"{{ safe }}";
 
-setTheme(localStorage.getItem("gs-theme")||"light");
+let initialTheme="light";try{initialTheme=localStorage.getItem("gs-theme")||"light"}catch(e){}setTheme(initialTheme);
 
 $("saveSettings").addEventListener("click",()=>{
     localStorage.setItem("gs-region",$("regionSelect").value);
@@ -1866,185 +1877,59 @@ if("serviceWorker" in navigator){
     });
 }
 
-// Browser tabs and mobile tab switcher.
+// Reliable mobile tab manager with persistent tabs.
 (()=>{
-    const KEY="ghana-search-browser-tabs-v2";
-    const list=$("browserTabList");
-    const newBtn=$("newBrowserTab");
-    const count=$("mobileTabCount");
-    const grid=$("mobileTabGrid");
-
-    if(!list||!newBtn)return;
-
-    function load(){
-        try{
-            const x=JSON.parse(localStorage.getItem(KEY));
-            if(Array.isArray(x)&&x.length)return x;
-        }catch(e){}
-
-        return [{id:Date.now(),title:"New Tab",query:"",type:"all"}];
-    }
-
-    let tabs=load();
-    let active=Number(localStorage.getItem("ghana-search-active-tab"))||tabs[0].id;
-
-    if(!tabs.some(t=>t.id===active))active=tabs[0].id;
-
-    function save(){
-        localStorage.setItem(KEY,JSON.stringify(tabs));
-        localStorage.setItem("ghana-search-active-tab",String(active));
-        if(count)count.textContent=String(tabs.length);
-    }
-
-    function go(tab){
-        active=tab.id;
-        save();
-
-        if(!tab.query){
-            location.href="/";
-            return;
-        }
-
-        const f=document.createElement("form");
-        f.method="POST";
-        f.action="/";
-
-        Object.entries({
-            search:tab.query,
-            search_type:tab.type||"all",
-            region:tab.region||localStorage.getItem("gs-region")||"worldwide",
-            safe:tab.safe||localStorage.getItem("gs-safe")||"moderate"
-        }).forEach(([n,v])=>{
-            const i=document.createElement("input");
-            i.type="hidden";
-            i.name=n;
-            i.value=v;
-            f.appendChild(i);
-        });
-
-        document.body.appendChild(f);
-        f.submit();
-    }
-
-    function close(id){
-        tabs=tabs.filter(t=>t.id!==id);
-
-        if(!tabs.length){
-            tabs=[{id:Date.now(),title:"New Tab",query:"",type:"all"}];
-        }
-
-        if(active===id){
-            active=tabs[tabs.length-1].id;
-            save();
-            render();
-            go(tabs.find(t=>t.id===active));
-        }else{
-            save();
-            render();
-        }
-    }
-
-    function render(){
-        list.innerHTML="";
-        grid.innerHTML="";
-
-        tabs.forEach(tab=>{
-            const b=document.createElement("button");
-            b.className="browser-tab"+(tab.id===active?" active":"");
-            b.type="button";
-
-            const title=document.createElement("span");
-            title.className="browser-tab-title";
-            title.textContent=tab.title||"New Tab";
-
-            const x=document.createElement("span");
-            x.className="close-browser-tab";
-            x.textContent="×";
-
-            x.addEventListener("click",e=>{
-                e.stopPropagation();
-                close(tab.id);
-            });
-
-            b.append(title,x);
-            b.addEventListener("click",()=>go(tab));
-            list.appendChild(b);
-
-            const card=document.createElement("button");
-            card.className="mobile-tab-card";
-            card.type="button";
-
-            const closeBtn=document.createElement("span");
-            closeBtn.className="tab-close";
-            closeBtn.textContent="×";
-
-            closeBtn.addEventListener("click",e=>{
-                e.stopPropagation();
-                close(tab.id);
-            });
-
-            const strong=document.createElement("strong");
-            strong.textContent=tab.title||"New Tab";
-
-            const small=document.createElement("small");
-            small.textContent=tab.query||"Blank search tab";
-
-            card.append(closeBtn,strong,small);
-            card.addEventListener("click",()=>go(tab));
-            grid.appendChild(card);
-        });
-
-        save();
-    }
-
-    if(count){
-        count.addEventListener("click",()=>{
-            grid.classList.toggle("open");
-        });
-    }
-
-    document.addEventListener("click",e=>{
-        if(grid&&!e.target.closest("#mobileTabGrid")&&!e.target.closest("#mobileTabCount")){
-            grid.classList.remove("open");
-        }
-    });
-
-    newBtn.addEventListener("click",()=>{
-        const tab={id:Date.now(),title:"New Tab",query:"",type:"all"};
-        tabs.push(tab);
-        active=tab.id;
-        save();
-        render();
-        location.href="/";
-    });
-
-    document.querySelectorAll('form[method="post"][action="/"]').forEach(form=>{
-        form.addEventListener("submit",()=>{
-            const d=new FormData(form);
-            const q=(d.get("search")||"").toString().trim();
-
-            if(!q)return;
-
-            let t=tabs.find(x=>x.id===active);
-
-            if(!t){
-                t={id:active};
-                tabs.push(t);
-            }
-
-            t.query=q;
-            t.title=q.length>24?q.slice(0,24)+"…":q;
-            t.type=d.get("search_type")||"all";
-            t.region=d.get("region")||"worldwide";
-            t.safe=d.get("safe")||"moderate";
-
-            save();
-        });
-    });
-
-    render();
-})();
-</script>
+ const KEY="ghana-search-browser-tabs-v2",ACTIVE="ghana-search-active-tab";
+ const list=$("browserTabList"),newBtn=$("newBrowserTab"),count=$("mobileTabCount"),grid=$("mobileTabGrid");
+ if(!list||!newBtn||!count||!grid)return;
+ const read=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}};
+ const write=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+ function load(){try{const a=JSON.parse(read(KEY,"[]"));if(Array.isArray(a)&&a.length)return a.filter(t=>t&&t.id).slice(0,50)}catch(e){}return [{id:Date.now(),title:"New Tab",query:"",type:"all"}]}
+ let tabs=load(),active=Number(read(ACTIVE,"0"))||tabs[0].id;
+ if(!tabs.some(t=>Number(t.id)===active))active=tabs[0].id;
+ function save(){write(KEY,JSON.stringify(tabs));write(ACTIVE,String(active));count.textContent=String(tabs.length)}
+ function go(tab){
+  if(!tab)return;active=Number(tab.id);save();grid.classList.remove("open");
+  if(!tab.query){location.href="/";return}
+  const form=document.createElement("form");form.method="POST";form.action="/";
+  const values={search:tab.query,search_type:tab.type||"all",region:tab.region||read("gs-region","worldwide"),safe:tab.safe||read("gs-safe","moderate")};
+  Object.entries(values).forEach(([n,v])=>{const el=document.createElement("input");el.type="hidden";el.name=n;el.value=v;form.appendChild(el)});
+  document.body.appendChild(form);form.submit();
+ }
+ function close(id){
+  if(tabs.length===1){tabs=[{id:Date.now(),title:"New Tab",query:"",type:"all"}];active=tabs[0].id;save();render();location.href="/";return}
+  tabs=tabs.filter(t=>Number(t.id)!==Number(id));
+  if(Number(active)===Number(id)){active=tabs[tabs.length-1].id;save();render();go(tabs.find(t=>Number(t.id)===Number(active)));return}
+  save();render();
+ }
+ function render(){
+  list.replaceChildren();grid.replaceChildren();
+  tabs.forEach(tab=>{
+   const card=document.createElement("button");card.type="button";card.className="mobile-tab-card";
+   const x=document.createElement("span");x.className="tab-close";x.textContent="×";x.setAttribute("aria-label","Close tab");x.addEventListener("click",e=>{e.stopPropagation();close(tab.id)});
+   const title=document.createElement("strong");title.textContent=tab.title||"New Tab";
+   const small=document.createElement("small");small.textContent=tab.query||"Blank search tab";
+   card.append(x,title,small);card.addEventListener("click",()=>go(tab));grid.appendChild(card);
+   const b=document.createElement("button");b.type="button";b.className="browser-tab"+(Number(tab.id)===Number(active)?" active":"");
+   const label=document.createElement("span");label.className="browser-tab-title";label.textContent=tab.title||"New Tab";
+   const closeBtn=document.createElement("span");closeBtn.className="close-browser-tab";closeBtn.textContent="×";closeBtn.addEventListener("click",e=>{e.stopPropagation();close(tab.id)});
+   b.append(label,closeBtn);b.addEventListener("click",()=>go(tab));list.appendChild(b);
+  });save();
+ }
+ count.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();grid.classList.toggle("open")});
+ document.addEventListener("click",e=>{if(!grid.contains(e.target)&&e.target!==count)grid.classList.remove("open")});
+ newBtn.addEventListener("click",e=>{
+  e.preventDefault();if(tabs.length>=50){alert("You can keep up to 50 GHANA SEARCH tabs open.");return}
+  const id=Date.now()+Math.floor(Math.random()*1000),tab={id:id,title:"New Tab",query:"",type:"all"};
+  tabs.push(tab);active=id;save();render();location.href="/";
+ });
+ document.querySelectorAll('form[method="post"][action="/"]').forEach(form=>form.addEventListener("submit",()=>{
+  const data=new FormData(form),query=String(data.get("search")||"").trim();if(!query)return;
+  let tab=tabs.find(t=>Number(t.id)===Number(active));if(!tab){tab={id:active};tabs.push(tab)}
+  tab.query=query;tab.title=query.length>24?query.slice(0,24)+"…":query;tab.type=data.get("search_type")||"all";tab.region=data.get("region")||"worldwide";tab.safe=data.get("safe")||"moderate";save();
+ }));
+ render();
+})();</script>
 
 {% if adsense_client and adsense_slot %}
 <script>
