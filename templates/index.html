@@ -383,7 +383,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 
 
 /* Full-screen conversational AI Mode */
-.ai-mode-screen{display:none;position:fixed;inset:0 0 66px;z-index:180;background:#202124;color:#e8eaed;flex-direction:column;overflow:hidden}
+.ai-mode-screen{display:none;position:fixed;inset:0!important;z-index:99999!important;background:#202124;color:#e8eaed;flex-direction:column;overflow:hidden;overscroll-behavior:contain}
 .ai-mode-screen.open{display:flex}
 .ai-mode-top{height:70px;flex:0 0 70px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid #3c4043;background:#202124}
 .ai-mode-close,.ai-mode-clear{border:0;background:transparent;color:#e8eaed;font-size:28px;width:42px;height:42px;border-radius:50%}
@@ -413,7 +413,7 @@ footer{border-top:1px solid var(--line);background:var(--surface2)}
 .ai-mode-add,.ai-mode-voice,.ai-mode-send{flex:0 0 38px;width:38px;height:38px;border:0;border-radius:50%;background:transparent;color:#e8eaed;font-size:23px}
 .ai-mode-send{background:#a8c7fa;color:#202124;font-size:19px}
 .ai-mode-note{text-align:center;color:#9aa0a6;font-size:10px;padding:0 10px 8px}
-body.ai-mode-open{overflow:hidden}
+body.ai-mode-open{overflow:hidden!important;height:100%;overscroll-behavior:none}
 @media(min-width:700px){.ai-mode-screen{inset:0 0 0}.ai-mode-top{height:76px}.ai-mode-conversation{padding-top:42px}.ai-mode-composer{max-width:780px;width:calc(100% - 40px);align-self:center;margin-bottom:16px}}
 
 
@@ -2000,12 +2000,30 @@ if(voiceAIMode)voiceAIMode.addEventListener("click",()=>{
 });
 const addAIMode=$("aiModeAdd");
 if(addAIMode)addAIMode.addEventListener("click",()=>{$("aiModeInput").focus()});
-document.querySelectorAll("[data-aimode]").forEach(tab=>tab.addEventListener("click",()=>{
+document.querySelectorAll("#aiModeScreen [data-aimode]").forEach(tab=>tab.addEventListener("click",()=>{
  const mode=tab.dataset.aimode;
- if(mode==="ai"){document.querySelectorAll("[data-aimode]").forEach(x=>x.classList.toggle("selected",x===tab));return}
- closeAIMode();
+ const tabs=document.querySelectorAll("#aiModeScreen [data-aimode]");
+ if(mode==="ai"){
+  tabs.forEach(x=>x.classList.toggle("selected",x===tab));
+  $("aiModeInput")?.focus();
+  return;
+ }
+ const aiField=$("aiModeInput");
+ const lastUserMessage=$("aiModeMessages")?.querySelector(".ai-mode-message.user:last-child");
+ const query=(aiField?.value||"").trim() || (lastUserMessage?.textContent||"").trim();
  const mainSearch=$("searchInput");
- if(mainSearch){const type=mainSearch.form?.querySelector('[name="search_type"]');if(type)type.value=mode==="all"?"all":mode;mainSearch.focus()}
+ const searchForm=mainSearch?.form;
+ if(!query){
+  aiField?.focus();
+  if(aiField)aiField.placeholder="Ask something first, then choose "+mode;
+  return;
+ }
+ if(!mainSearch||!searchForm)return;
+ const type=searchForm.querySelector('[name="search_type"]');
+ if(type)type.value=mode==="all"?"all":mode;
+ mainSearch.value=query;
+ closeAIMode();
+ searchForm.requestSubmit();
 }));
 
 </script>
