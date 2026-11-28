@@ -136,11 +136,20 @@ def fetch_discover_rss(region_code="wt-wt", page=1):
         raw_description = item.findtext("description") or ""
         description = clean_text(raw_description, 650)
         image = ""
-        for image_tag in item.iter():
-            if image_tag.tag.endswith(("}thumbnail", "}content", "}enclosure")):
-                image = clean_url(image_tag.attrib.get("url", ""))
-                if image:
-                    break
+        # Google News often embeds its thumbnail in description HTML.
+        image_match = re.search(
+            r'<img[^>]+(?:src|data-src)=["\\']([^"\\']+)["\\']',
+            html.unescape(raw_description),
+            re.IGNORECASE,
+        )
+        if image_match:
+            image = clean_url(image_match.group(1))
+        if not image:
+            for image_tag in item.iter():
+                if image_tag.tag.lower().endswith(("}thumbnail", "}content", "}enclosure")):
+                    image = clean_url(image_tag.attrib.get("url", ""))
+                    if image:
+                        break
         if not title or not link:
             continue
         value = (title + " " + description).lower()
