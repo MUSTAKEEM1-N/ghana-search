@@ -616,6 +616,45 @@ body.christmas-mode .ai-mode-message .ai-sources a{color:#9ed3ad}
  .home-story{display:grid!important;grid-template-columns:minmax(0,1fr) 76px!important;align-items:center!important;gap:12px!important;padding:13px 0!important;background:transparent!important;border:0!important;border-bottom:1px solid #45494f!important}
 }
 
+
+/* MOBILE TAB BAR RESTORE: show the Google-style page controls */
+@media(max-width:650px){
+ .browser-tabs{
+  display:flex!important;position:relative!important;gap:10px!important;
+  height:58px!important;min-height:58px!important;padding:6px 12px!important;
+  justify-content:flex-start!important;align-items:center!important;
+  background:#202a31!important;border-bottom:1px solid #3c4850!important;
+ }
+ .mobile-home-link{
+  display:grid!important;place-items:center!important;order:1!important;
+  flex:0 0 36px!important;width:36px!important;height:36px!important;
+  color:#f1f3f4!important;font-size:25px!important;text-decoration:none!important;
+ }
+ .browser-tab-list{display:none!important}
+ .mobile-tab-count{
+  display:grid!important;place-items:center!important;order:2!important;
+  flex:0 0 38px!important;width:38px!important;height:38px!important;
+  border:1px solid #697780!important;border-radius:10px!important;
+  background:#263943!important;color:#f1f3f4!important;font-size:15px!important;
+ }
+ .new-browser-tab{
+  display:grid!important;place-items:center!important;order:3!important;
+  flex:0 0 38px!important;width:38px!important;height:38px!important;
+  margin-left:0!important;border:1px solid #697780!important;
+  border-radius:10px!important;background:#263943!important;
+  color:#f1f3f4!important;font-size:25px!important;
+ }
+ .mobile-menu-button{
+  display:grid!important;place-items:center!important;order:4!important;
+  flex:0 0 38px!important;width:38px!important;height:38px!important;
+  margin-left:auto!important;border:1px solid #697780!important;
+  border-radius:10px!important;background:#263943!important;
+  color:#f1f3f4!important;font-size:24px!important;cursor:pointer!important;
+ }
+ .mobile-quick-menu.open{right:12px!important;top:58px!important;bottom:auto!important}
+ .mobile-tab-grid.open{top:64px!important}
+}
+
 </style>
 </head>
 
